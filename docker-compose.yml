@@ -1,0 +1,105 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - web-app
+      - user-manager
+
+  web-app:
+    build:
+      context: ./web-app
+      args:
+        - VITE_API_BASE_URL=/api
+
+  user-manager:
+    build: ./user-manager
+    environment:
+      - PORT=8081
+      - POSTGRES_URL=postgresql://user-manager:3f9876c5d8d29c1c490cdaa119a7d5e3@user-manager-postgres:5432/user-manager
+      - JWT_SECRET_KEY=nus-iss-software-engineering-big-data
+      - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - user-manager-postgres
+      - kafka-1
+      - kafka-2
+      - kafka-3
+
+  user-manager-postgres:
+    image: postgres
+    environment:
+      - POSTGRES_USER=user-manager
+      - POSTGRES_PASSWORD=3f9876c5d8d29c1c490cdaa119a7d5e3
+      - POSTGRES_DB=user-manager
+    volumes:
+      - ./user-manager/database:/docker-entrypoint-initdb.d
+      - user-manager-postgres-data:/var/lib/postgresql/data
+
+  kafka-1:
+    image: apache/kafka-native
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=CONTROLLER://:9091,DOCKER://:9092
+      - KAFKA_ADVERTISED_LISTENERS=DOCKER://kafka-1:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
+      - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
+      - KAFKA_NUM_PARTITIONS=3
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+    volumes:
+      - kafka-1-data:/var/lib/kafka/data
+
+  kafka-2:
+    image: apache/kafka-native
+    environment:
+      - KAFKA_NODE_ID=2
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=CONTROLLER://:9091,DOCKER://:9092
+      - KAFKA_ADVERTISED_LISTENERS=DOCKER://kafka-2:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
+      - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
+      - KAFKA_NUM_PARTITIONS=3
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+    volumes:
+      - kafka-2-data:/var/lib/kafka/data
+
+  kafka-3:
+    image: apache/kafka-native
+    environment:
+      - KAFKA_NODE_ID=3
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=CONTROLLER://:9091,DOCKER://:9092
+      - KAFKA_ADVERTISED_LISTENERS=DOCKER://kafka-3:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
+      - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
+      - KAFKA_NUM_PARTITIONS=3
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+    volumes:
+      - kafka-3-data:/var/lib/kafka/data
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    ports:
+      - 9090:8080
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+
+volumes:
+  user-manager-postgres-data:
+  kafka-1-data:
+  kafka-2-data:
+  kafka-3-data:

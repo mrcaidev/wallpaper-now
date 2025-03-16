@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/@biomejs/biome/configuration_schema.json",
+  "files": {
+    "ignoreUnknown": true
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git"
+  },
+  "linter": {
+    "enabled": true,
+    "ignore": ["src/components/ui", "src/globals.css"]
+  },
+  "formatter": {
+    "enabled": true,
+    "useEditorconfig": true
+  },
+  "organizeImports": {
+    "enabled": true
+  }
+}
