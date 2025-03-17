@@ -18,7 +18,6 @@ services:
   user-manager:
     build: ./user-manager
     environment:
-      - PORT=8081
       - POSTGRES_URL=postgresql://user-manager:3f9876c5d8d29c1c490cdaa119a7d5e3@user-manager-postgres:5432/user-manager
       - JWT_SECRET=nus-iss-software-engineering-big-data
       - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
