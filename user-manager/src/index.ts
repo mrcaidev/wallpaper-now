@@ -48,7 +48,7 @@ app.get("/me", async (c) => {
   const user = rows[0] as PublicUser | undefined;
 
   if (!user) {
-    throw new HTTPException(401, { message: "Invalid token" });
+    throw new HTTPException(401, { message: "This user does not exist" });
   }
 
   return c.json(user);
