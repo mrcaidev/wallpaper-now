@@ -8,7 +8,15 @@ export class RequestError extends Error {
 }
 
 async function wrappedFetch<T>(url: string, init: RequestInit) {
-  const res = await fetch(import.meta.env.VITE_API_BASE_URL + url, init);
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(import.meta.env.VITE_API_BASE_URL + url, {
+    ...init,
+    headers: {
+      Authorization: token ? `Bearer ${token}` : "",
+      ...init.headers,
+    },
+  });
 
   if (res.status === 204) {
     return undefined as T;

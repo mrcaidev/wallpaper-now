@@ -4,7 +4,7 @@ import {
   useMeQuery,
 } from "@/apis/user.ts";
 import { Loader2Icon, LogInIcon, LogOutIcon, XIcon } from "lucide-react";
-import { type FormEventHandler, type MouseEventHandler, useState } from "react";
+import { type FormEventHandler, useState } from "react";
 import { Button } from "./ui/button.tsx";
 import {
   Dialog,
@@ -113,21 +113,11 @@ function LogInDialog() {
 }
 
 function LogOutButton() {
-  const { mutate, isPending } = useLogOutMutation();
-
-  const handleClick: MouseEventHandler<HTMLButtonElement> = () => {
-    mutate();
-  };
+  const logOut = useLogOutMutation();
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={handleClick}
-      disabled={isPending}
-      aria-label="Log out"
-    >
-      {isPending ? <Loader2Icon className="animate-spin" /> : <LogOutIcon />}
+    <Button variant="ghost" size="icon" onClick={logOut} aria-label="Log out">
+      <LogOutIcon />
     </Button>
   );
 }
