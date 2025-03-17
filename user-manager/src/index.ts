@@ -1,6 +1,5 @@
 import { sql } from "bun";
 import { type Context, Hono } from "hono";
-import { deleteCookie, setCookie } from "hono/cookie";
 import { HTTPException } from "hono/http-exception";
 import { jwt, sign } from "hono/jwt";
 import { logger } from "hono/logger";
@@ -21,18 +20,11 @@ app.get("/", (c) => {
   return c.text("ok");
 });
 
-app.get(
-  "/auth",
-  jwt({
-    secret: Bun.env.JWT_SECRET,
-    cookie: "token",
-  }),
-  async (c) => {
-    const { id } = c.get("jwtPayload");
-    c.header("X-User-Id", id);
-    return c.body(null, 204);
-  },
-);
+app.get("/auth", jwt({ secret: Bun.env.JWT_SECRET }), async (c) => {
+  const { id } = c.get("jwtPayload");
+  c.header("X-User-Id", id);
+  return c.body(null, 204);
+});
 
 app.get("/me", async (c) => {
   const userId = c.req.header("X-User-Id");
@@ -97,9 +89,8 @@ app.post(
       }
 
       const token = await sign({ id }, Bun.env.JWT_SECRET);
-      setCookie(c, "token", token, { httpOnly: true });
 
-      return c.json({ id, username, createdAt } satisfies PublicUser, 201);
+      return c.json({ id, username, createdAt, token }, 201);
     }
 
     const passwordSalt = generatePasswordSalt();
@@ -114,16 +105,10 @@ app.post(
     await sendUserCreatedEvent(newUser);
 
     const token = await sign({ id: newUser.id }, Bun.env.JWT_SECRET);
-    setCookie(c, "token", token, { httpOnly: true });
 
-    return c.json(newUser, 201);
+    return c.json({ ...newUser, token }, 201);
   },
 );
-
-app.post("/logout", async (c) => {
-  deleteCookie(c, "token");
-  return c.body(null, 204);
-});
 
 app.onError((error: unknown, c: Context) => {
   if (error instanceof HTTPException) {

@@ -15,7 +15,7 @@ export function useMeQuery() {
 export function useLogInMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<User, Error, FormData>({
+  return useMutation<User & { token: string }, Error, FormData>({
     mutationFn: async (formData) => {
       const { username, password } = Object.fromEntries(formData);
       if (!username || !password) {
@@ -23,7 +23,9 @@ export function useLogInMutation() {
       }
       return await request.post("/login", { username, password });
     },
-    onSuccess: (me) => {
+    onSuccess: ({ token, ...me }) => {
+      localStorage.setItem("token", token);
+
       queryClient.cancelQueries({ queryKey: ["me"] });
       queryClient.setQueryData(["me"], me);
     },
@@ -36,16 +38,10 @@ export function useLogInMutation() {
 export function useLogOutMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<void>({
-    mutationFn: async () => {
-      await request.post("/logout");
-    },
-    onSuccess: () => {
-      queryClient.cancelQueries({ queryKey: ["me"] });
-      queryClient.resetQueries({ queryKey: ["me"] });
-    },
-    onError: (error) => {
-      toast.error("Failed to log out", { description: error.message });
-    },
-  });
+  return () => {
+    localStorage.removeItem("token");
+
+    queryClient.cancelQueries({ queryKey: ["me"] });
+    queryClient.resetQueries({ queryKey: ["me"] });
+  };
 }
