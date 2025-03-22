@@ -19,10 +19,12 @@ type UnsplashWallpaper = {
 
 export async function scrapeUnsplash(total: number) {
   const pages = paginate(total);
-  const wallpapers = await parallel(
+  const scrapeResults = await parallel(
     pages.map((p) => () => scrapePage(p.page, p.pageSize)),
   );
-  return wallpapers.flat().filter(Boolean);
+  const wallpapers = scrapeResults.flat().filter(Boolean);
+  console.log(`[Unsplash] Finished. Scraped ${wallpapers.length} in total`);
+  return wallpapers;
 }
 
 function paginate(total: number) {
@@ -43,8 +45,6 @@ function paginate(total: number) {
 }
 
 async function scrapePage(page: number, pageSize: number) {
-  console.log(`Scraping page ${page}, expect ${pageSize} wallpapers`);
-
   const res = await fetch(
     `https://unsplash.com/napi/topics/wallpapers/photos?page=${page}&per_page=${pageSize}`,
   );
@@ -66,8 +66,9 @@ async function scrapePage(page: number, pageSize: number) {
         }) as Wallpaper,
     );
   const persistedCount = await persist(wallpapers);
+
   console.log(
-    `Scraped page ${page}, expect ${pageSize}, got ${wallpapers.length}, persisted ${persistedCount}`,
+    `[Unsplash] Scraped page ${page}, expect ${pageSize}, got ${wallpapers.length}, persisted ${persistedCount}`,
   );
 
   return wallpapers;
