@@ -16,6 +16,7 @@ services:
       context: ./web-app
       args:
         - VITE_API_BASE_URL=/api
+    restart: always
 
   user-manager:
     build: ./user-manager
@@ -28,6 +29,7 @@ services:
       - kafka-1
       - kafka-2
       - kafka-3
+    restart: always
 
   user-manager-postgres:
     image: postgres
@@ -38,6 +40,7 @@ services:
     volumes:
       - ./user-manager/database:/docker-entrypoint-initdb.d
       - user-manager-postgres-data:/var/lib/postgresql/data
+    restart: always
 
   wallpaper-manager:
     build: ./wallpaper-manager
@@ -50,6 +53,7 @@ services:
       - kafka-1
       - kafka-2
       - kafka-3
+    restart: always
 
   wallpaper-manager-postgres:
     image: postgres
@@ -60,6 +64,7 @@ services:
     volumes:
       - ./wallpaper-manager/database:/docker-entrypoint-initdb.d
       - wallpaper-manager-postgres-data:/var/lib/postgresql/data
+    restart: always
 
   interaction-collector:
     build: ./interaction-collector
@@ -71,6 +76,7 @@ services:
       - kafka-1
       - kafka-2
       - kafka-3
+    restart: always
 
   interaction-collector-postgres:
     image: postgres
@@ -81,6 +87,7 @@ services:
     volumes:
       - ./interaction-collector/database:/docker-entrypoint-initdb.d
       - interaction-collector-postgres-data:/var/lib/postgresql/data
+    restart: always
 
   kafka-1:
     image: apache/kafka-native
@@ -97,6 +104,7 @@ services:
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
     volumes:
       - kafka-1-data:/var/lib/kafka/data
+    restart: always
 
   kafka-2:
     image: apache/kafka-native
@@ -113,6 +121,7 @@ services:
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
     volumes:
       - kafka-2-data:/var/lib/kafka/data
+    restart: always
 
   kafka-3:
     image: apache/kafka-native
@@ -129,6 +138,7 @@ services:
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
     volumes:
       - kafka-3-data:/var/lib/kafka/data
+    restart: always
 
   kafka-ui:
     image: provectuslabs/kafka-ui
@@ -141,6 +151,7 @@ services:
       - kafka-1
       - kafka-2
       - kafka-3
+    restart: always
 
 volumes:
   user-manager-postgres-data:
