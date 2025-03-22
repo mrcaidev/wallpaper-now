@@ -5,5 +5,6 @@ create table if not exists wallpapers (
   height integer not null,
   small_url text not null,
   regular_url text not null,
-  raw_url text not null
+  raw_url text not null,
+  deduplication_key text not null unique
 );

@@ -61,6 +61,7 @@ async function scrapePage(page: number, pageSize: number) {
           smallUrl: w.urls.small,
           regularUrl: w.urls.regular,
           rawUrl: w.urls.raw,
+          deduplicationKey: `unsplash:${w.id}`,
         }) as Wallpaper,
     );
 
