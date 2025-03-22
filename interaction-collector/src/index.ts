@@ -234,7 +234,8 @@ app.post(
       return c.json([]);
     }
 
-    const rows = await sql`
+    const rows: Pick<Interaction, "wallpaperId" | "likedAt" | "dislikedAt">[] =
+      await sql`
       select
         wallpaper_id as "wallpaperId",
         liked_at as "likedAt",
@@ -242,12 +243,17 @@ app.post(
       from interactions
       where user_id = ${userId} and wallpaper_id in (${sql.unsafe(wallpaperIds.map((id) => `'${id}'`).join(","))})`;
 
-    const attitudes = rows.map(
-      (row: Pick<Interaction, "wallpaperId" | "likedAt" | "dislikedAt">) => ({
-        wallpaperId: row.wallpaperId,
-        attitude: row.likedAt ? "liked" : row.dislikedAt ? "disliked" : null,
-      }),
-    );
+    const attitudes: {
+      wallpaperId: string;
+      attitude: "liked" | "disliked" | null;
+    }[] = [];
+    for (const wallpaperId of wallpaperIds) {
+      const row = rows.find((r) => r.wallpaperId === wallpaperId);
+      attitudes.push({
+        wallpaperId,
+        attitude: row?.likedAt ? "liked" : row?.dislikedAt ? "disliked" : null,
+      });
+    }
 
     return c.json(attitudes);
   },
