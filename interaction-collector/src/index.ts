@@ -5,6 +5,7 @@ import { logger } from "hono/logger";
 import { validator } from "hono/validator";
 import { sendInteractionCollectedEvent } from "./kafka.ts";
 import type { Interaction } from "./types.ts";
+import { isUuid } from "./utils.ts";
 
 const app = new Hono();
 
@@ -25,18 +26,18 @@ app.post(
   validator("json", (json) => {
     const { wallpaperId, action } = json;
 
-    if (!wallpaperId || typeof wallpaperId !== "string") {
-      throw new HTTPException(400, { message: "Wallpaper ID is required" });
+    if (typeof wallpaperId !== "string") {
+      throw new HTTPException(400, {
+        message: "Wallpaper ID should be a string",
+      });
     }
 
-    const UUID_REGEXP =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-    if (!UUID_REGEXP.test(wallpaperId)) {
+    if (!isUuid(wallpaperId)) {
       throw new HTTPException(400, { message: "Wallpaper ID is invalid" });
     }
 
-    if (!action || typeof action !== "string") {
-      throw new HTTPException(400, { message: "Action is required" });
+    if (typeof action !== "string") {
+      throw new HTTPException(400, { message: "Action should be a string" });
     }
 
     if (!(action in WEIGHTS)) {
@@ -192,6 +193,65 @@ function diffWeight(oldInteraction: Interaction | undefined, action: string) {
       throw new HTTPException(400, { message: "Action is not supported" });
   }
 }
+
+app.post(
+  "/internal/:userId/attitudes",
+  validator("param", (param) => {
+    const { userId } = param;
+
+    if (typeof userId !== "string") {
+      throw new HTTPException(400, { message: "User ID should be a string" });
+    }
+
+    if (!isUuid(userId)) {
+      throw new HTTPException(400, { message: "User ID is invalid" });
+    }
+
+    return { userId };
+  }),
+  validator("json", (json) => {
+    const { wallpaperIds } = json;
+
+    if (!Array.isArray(wallpaperIds)) {
+      throw new HTTPException(400, {
+        message: "Wallpaper IDs should be an array",
+      });
+    }
+
+    if (wallpaperIds.some((id) => typeof id !== "string" || !isUuid(id))) {
+      throw new HTTPException(400, {
+        message: "Some wallpaper IDs are invalid",
+      });
+    }
+
+    return { wallpaperIds };
+  }),
+  async (c) => {
+    const { userId } = c.req.valid("param");
+    const { wallpaperIds } = c.req.valid("json");
+
+    if (wallpaperIds.length === 0) {
+      return c.json([]);
+    }
+
+    const rows = await sql`
+      select
+        wallpaper_id as "wallpaperId",
+        liked_at as "likedAt",
+        disliked_at as "dislikedAt"
+      from interactions
+      where user_id = ${userId} and wallpaper_id in (${sql.unsafe(wallpaperIds.map((id) => `'${id}'`).join(","))})`;
+
+    const attitudes = rows.map(
+      (row: Pick<Interaction, "wallpaperId" | "likedAt" | "dislikedAt">) => ({
+        wallpaperId: row.wallpaperId,
+        attitude: row.likedAt ? "liked" : row.dislikedAt ? "disliked" : null,
+      }),
+    );
+
+    return c.json(attitudes);
+  },
+);
 
 app.onError((error: unknown, c: Context) => {
   if (error instanceof HTTPException) {
