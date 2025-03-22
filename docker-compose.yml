@@ -8,6 +8,7 @@ services:
     depends_on:
       - web-app
       - user-manager
+      - interaction-collector
 
   web-app:
     build:
@@ -36,6 +37,27 @@ services:
     volumes:
       - ./user-manager/database:/docker-entrypoint-initdb.d
       - user-manager-postgres-data:/var/lib/postgresql/data
+
+  interaction-collector:
+    build: ./interaction-collector
+    environment:
+      - POSTGRES_URL=postgresql://interaction-collector:54f48a762ab0867b396cde2d14138d20@interaction-collector-postgres:5432/interaction-collector
+      - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - interaction-collector-postgres
+      - kafka-1
+      - kafka-2
+      - kafka-3
+
+  interaction-collector-postgres:
+    image: postgres
+    environment:
+      - POSTGRES_USER=interaction-collector
+      - POSTGRES_PASSWORD=54f48a762ab0867b396cde2d14138d20
+      - POSTGRES_DB=interaction-collector
+    volumes:
+      - ./interaction-collector/database:/docker-entrypoint-initdb.d
+      - interaction-collector-postgres-data:/var/lib/postgresql/data
 
   kafka-1:
     image: apache/kafka-native
@@ -99,6 +121,7 @@ services:
 
 volumes:
   user-manager-postgres-data:
+  interaction-collector-postgres-data:
   kafka-1-data:
   kafka-2-data:
   kafka-3-data:
