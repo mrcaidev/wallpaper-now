@@ -16,6 +16,7 @@ const topicsCreated = await admin.createTopics({
     {
       topic: "InteractionCollected",
       numPartitions: 5,
+      replicationFactor: 2,
     },
   ],
 });

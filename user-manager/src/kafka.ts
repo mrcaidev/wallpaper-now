@@ -17,6 +17,7 @@ const topicsCreated = await admin.createTopics({
     {
       topic: "UserCreated",
       numPartitions: 3,
+      replicationFactor: 2,
     },
   ],
 });
