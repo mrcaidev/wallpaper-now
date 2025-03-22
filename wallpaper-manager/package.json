@@ -1,0 +1,19 @@
+{
+  "name": "wallpaper-manager",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "build": "tsc && bun build --outdir dist --target bun --minify src/index.ts",
+    "check": "biome check"
+  },
+  "dependencies": {
+    "hono": "^4.7.5",
+    "kafkajs": "^2.2.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/bun": "^1.2.5",
+    "typescript": "^5.8.2"
+  }
+}

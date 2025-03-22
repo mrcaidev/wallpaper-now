@@ -1,8 +1,8 @@
 import { Kafka, logLevel } from "kafkajs";
-import type { PublicUser } from "./types.ts";
+import type { Wallpaper } from "./types.ts";
 
 const kafka = new Kafka({
-  clientId: "user-manager",
+  clientId: "wallpaper-manager",
   brokers: Bun.env.KAFKA_BROKERS.split(","),
   logLevel: logLevel.ERROR,
 });
@@ -15,7 +15,7 @@ console.log("Connected admin to Kafka");
 const topicsCreated = await admin.createTopics({
   topics: [
     {
-      topic: "UserCreated",
+      topic: "WallpaperScraped",
       numPartitions: 3,
       replicationFactor: 2,
     },
@@ -31,12 +31,17 @@ const producer = kafka.producer();
 await producer.connect();
 console.log("Connected producer to Kafka");
 
-export async function sendUserCreatedEvent(payload: PublicUser) {
-  const [record] = await producer.send({
-    topic: "UserCreated",
-    messages: [{ value: JSON.stringify(payload) }],
-  });
-  console.log("Sent event:", JSON.stringify(record));
+export async function sendWallpaperScrapedEvent(wallpapers: Wallpaper[]) {
+  const BATCH_SIZE = 100;
+
+  for (let i = 0; i <= wallpapers.length - 1; i += BATCH_SIZE) {
+    const batch = wallpapers.slice(i, i + BATCH_SIZE);
+    const [record] = await producer.send({
+      topic: "WallpaperScraped",
+      messages: [{ value: JSON.stringify({ wallpapers: batch }) }],
+    });
+    console.log("Sent event:", JSON.stringify(record));
+  }
 }
 
 for (const errorType of ["unhandledRejection", "uncaughtException"]) {
