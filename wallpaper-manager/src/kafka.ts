@@ -16,7 +16,7 @@ const topicsCreated = await admin.createTopics({
   topics: [
     {
       topic: "WallpaperScraped",
-      numPartitions: 5,
+      numPartitions: 3,
     },
   ],
 });
