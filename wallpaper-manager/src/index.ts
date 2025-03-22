@@ -3,7 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { validator } from "hono/validator";
 import { sendWallpaperScrapedEvent } from "./kafka.ts";
-import { scrapeUnsplash } from "./scraper/unsplash.ts";
+import { scrape } from "./scraper/index.ts";
 
 const app = new Hono();
 
@@ -38,7 +38,7 @@ app.post(
   async (c) => {
     const { total } = c.req.valid("json");
 
-    const wallpapers = await scrapeUnsplash(total);
+    const wallpapers = await scrape(total);
     await sendWallpaperScrapedEvent(wallpapers);
 
     return c.body(null, 204);

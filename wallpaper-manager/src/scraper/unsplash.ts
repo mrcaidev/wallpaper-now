@@ -1,4 +1,4 @@
-import { parallel } from "./parallel.ts";
+import type { Page } from "./paginate.ts";
 import { persist } from "./persist.ts";
 
 type UnsplashWallpaper = {
@@ -16,36 +16,9 @@ type UnsplashWallpaper = {
   plus: boolean;
 };
 
-export async function scrapeUnsplash(total: number) {
-  const pages = paginate(total);
-  const scrapeResults = await parallel(
-    pages.map((p) => () => scrapePage(p.page, p.pageSize)),
-  );
-  const wallpapers = scrapeResults.flat().filter(Boolean);
-  console.log(`[Unsplash] Finished. Scraped ${wallpapers.length} in total`);
-  return wallpapers;
-}
-
-function paginate(total: number) {
-  const MAX_PAGE_SIZE = 30;
-  const fullPageCount = Math.floor(total / MAX_PAGE_SIZE);
-  const remainder = total % MAX_PAGE_SIZE;
-
-  const pages = Array.from({ length: fullPageCount }, (_, i) => ({
-    page: i + 1,
-    pageSize: MAX_PAGE_SIZE,
-  }));
-
-  if (remainder > 0) {
-    pages.push({ page: fullPageCount + 1, pageSize: remainder });
-  }
-
-  return pages;
-}
-
-async function scrapePage(page: number, pageSize: number) {
+export async function scrapeUnsplashPage(page: Page) {
   const res = await fetch(
-    `https://unsplash.com/napi/topics/wallpapers/photos?page=${page}&per_page=${pageSize}`,
+    `https://unsplash.com/napi/topics/wallpapers/photos?page=${page.index}&per_page=${page.size}`,
   );
   const data = (await res.json()) as UnsplashWallpaper[];
 
@@ -63,7 +36,7 @@ async function scrapePage(page: number, pageSize: number) {
   const deduplicatedWallpapers = await persist(wallpapers);
 
   console.log(
-    `[Unsplash] Scraped page ${page}, expect ${pageSize}, got ${wallpapers.length}, persisted ${deduplicatedWallpapers.length}`,
+    `[Unsplash] Scraped page ${page.index}, expect ${page.size}, got ${wallpapers.length}, persisted ${deduplicatedWallpapers.length}`,
   );
 
   return deduplicatedWallpapers;

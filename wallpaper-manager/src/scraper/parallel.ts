@@ -25,7 +25,7 @@ class Semaphore {
 }
 
 async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
 type Options = {
@@ -37,7 +37,7 @@ export async function parallel<T>(
   tasks: (() => Promise<T>)[],
   options: Options = {},
 ) {
-  const { limit = 5, interval = 1000 } = options;
+  const { limit = Number.POSITIVE_INFINITY, interval = 0 } = options;
 
   const results = Array<T>(tasks.length);
   let count = 0;
