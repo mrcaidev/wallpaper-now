@@ -1,3 +1,4 @@
+import { scrapeHubPage } from "./hub.ts";
 import { paginate } from "./paginate.ts";
 import { parallel } from "./parallel.ts";
 import { scrapeUnsplashPage } from "./unsplash.ts";
@@ -7,6 +8,13 @@ export const config = [
     source: "Unsplash",
     scrapePage: scrapeUnsplashPage,
     maxPageSize: 30,
+    limit: 5,
+    interval: 1000,
+  },
+  {
+    source: "Hub",
+    scrapePage: scrapeHubPage,
+    maxPageSize: 20,
     limit: 5,
     interval: 1000,
   },
