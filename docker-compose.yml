@@ -8,6 +8,7 @@ services:
     depends_on:
       - web-app
       - user-manager
+      - wallpaper-manager
       - interaction-collector
 
   web-app:
@@ -37,6 +38,28 @@ services:
     volumes:
       - ./user-manager/database:/docker-entrypoint-initdb.d
       - user-manager-postgres-data:/var/lib/postgresql/data
+
+  wallpaper-manager:
+    build: ./wallpaper-manager
+    environment:
+      - API_KEY=only-i-can-scrape-new-wallpapers
+      - POSTGRES_URL=postgresql://wallpaper-manager:b9135ff23d8df60de4a4fa7e7d2f8a92@wallpaper-manager-postgres:5432/wallpaper-manager
+      - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - wallpaper-manager-postgres
+      - kafka-1
+      - kafka-2
+      - kafka-3
+
+  wallpaper-manager-postgres:
+    image: postgres
+    environment:
+      - POSTGRES_USER=wallpaper-manager
+      - POSTGRES_PASSWORD=b9135ff23d8df60de4a4fa7e7d2f8a92
+      - POSTGRES_DB=wallpaper-manager
+    volumes:
+      - ./wallpaper-manager/database:/docker-entrypoint-initdb.d
+      - wallpaper-manager-postgres-data:/var/lib/postgresql/data
 
   interaction-collector:
     build: ./interaction-collector
@@ -121,6 +144,7 @@ services:
 
 volumes:
   user-manager-postgres-data:
+  wallpaper-manager-postgres-data:
   interaction-collector-postgres-data:
   kafka-1-data:
   kafka-2-data:
