@@ -22,7 +22,7 @@ export async function scrapeUnsplash(total: number) {
   const wallpapers = await parallel(
     pages.map((p) => () => scrapePage(p.page, p.pageSize)),
   );
-  return wallpapers.flat();
+  return wallpapers.flat().filter(Boolean);
 }
 
 function paginate(total: number) {
