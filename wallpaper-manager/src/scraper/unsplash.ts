@@ -1,5 +1,6 @@
 import type { Wallpaper } from "@/types.ts";
 import { parallel } from "./parallel.ts";
+import { persist } from "./persist.ts";
 
 type UnsplashWallpaper = {
   id: string;
@@ -64,7 +65,10 @@ async function scrapePage(page: number, pageSize: number) {
           deduplicationKey: `unsplash:${w.id}`,
         }) as Wallpaper,
     );
+  const persistedCount = await persist(wallpapers);
+  console.log(
+    `Scraped page ${page}, expect ${pageSize}, got ${wallpapers.length}, persisted ${persistedCount}`,
+  );
 
-  console.log(`Scraped page ${page}, got ${wallpapers.length} wallpapers`);
   return wallpapers;
 }

@@ -52,12 +52,7 @@ export async function parallel<T>(
         .then((value) => {
           results[i] = value;
         })
-        .then(() => {
-          if (!interval) {
-            return;
-          }
-          return sleep(interval);
-        })
+        .then(() => sleep(interval))
         .finally(() => {
           semaphore.release();
           count++;
