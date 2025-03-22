@@ -1,0 +1,69 @@
+import type { Wallpaper } from "@/types.ts";
+import { parallel } from "./parallel.ts";
+
+type UnsplashWallpaper = {
+  id: string;
+  width: number;
+  height: number;
+  description: string;
+  alt_description: string;
+  urls: {
+    raw: string;
+    regular: string;
+    small: string;
+  };
+  premium: boolean;
+  plus: boolean;
+};
+
+export async function scrapeUnsplash(total: number) {
+  const pages = paginate(total);
+  const wallpapers = await parallel(
+    pages.map((p) => () => scrapePage(p.page, p.pageSize)),
+  );
+  return wallpapers.flat();
+}
+
+function paginate(total: number) {
+  const MAX_PAGE_SIZE = 30;
+  const fullPageCount = Math.floor(total / MAX_PAGE_SIZE);
+  const remainder = total % MAX_PAGE_SIZE;
+
+  const pages = Array.from({ length: fullPageCount }, (_, i) => ({
+    page: i + 1,
+    pageSize: MAX_PAGE_SIZE,
+  }));
+
+  if (remainder > 0) {
+    pages.push({ page: fullPageCount + 1, pageSize: remainder });
+  }
+
+  return pages;
+}
+
+async function scrapePage(page: number, pageSize: number) {
+  console.log(`Scraping page ${page}, expect ${pageSize} wallpapers`);
+
+  const res = await fetch(
+    `https://unsplash.com/napi/topics/wallpapers/photos?page=${page}&per_page=${pageSize}`,
+  );
+  const data = (await res.json()) as UnsplashWallpaper[];
+
+  const wallpapers = data
+    .filter((w) => !w.premium && !w.plus)
+    .map(
+      (w) =>
+        ({
+          id: crypto.randomUUID(),
+          description: w.alt_description || w.description || "",
+          width: w.width,
+          height: w.height,
+          smallUrl: w.urls.small,
+          regularUrl: w.urls.regular,
+          rawUrl: w.urls.raw,
+        }) as Wallpaper,
+    );
+
+  console.log(`Scraped page ${page}, got ${wallpapers.length} wallpapers`);
+  return wallpapers;
+}

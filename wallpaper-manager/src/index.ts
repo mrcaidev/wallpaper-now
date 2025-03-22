@@ -2,6 +2,7 @@ import { type Context, Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { validator } from "hono/validator";
+import { scrapeUnsplash } from "./scraper/unsplash.ts";
 
 const app = new Hono();
 
@@ -19,23 +20,26 @@ app.post(
     }
   }),
   validator("json", (json) => {
-    const size = Number(json.size);
+    const total = Number(json.total);
 
-    if (Number.isNaN(size) || !Number.isInteger(size)) {
-      throw new HTTPException(400, { message: "Size should be an integer" });
+    if (Number.isNaN(total) || !Number.isInteger(total)) {
+      throw new HTTPException(400, { message: "Total should be an integer" });
     }
 
-    if (size < 1 || size > 100) {
+    if (total < 1 || total > 100) {
       throw new HTTPException(400, {
-        message: "Size should be between 1 and 100",
+        message: "Total should be between 1 and 100",
       });
     }
 
-    return { size };
+    return { total };
   }),
   async (c) => {
-    const { size } = c.req.valid("json");
-    console.log(`About to scrape ${size} wallpapers`);
+    const { total } = c.req.valid("json");
+
+    const wallpapers = await scrapeUnsplash(total);
+    console.log(wallpapers);
+
     return c.body(null, 204);
   },
 );
