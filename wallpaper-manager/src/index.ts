@@ -2,6 +2,7 @@ import { type Context, Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { validator } from "hono/validator";
+import { sendWallpaperScrapedEvent } from "./kafka.ts";
 import { scrapeUnsplash } from "./scraper/unsplash.ts";
 
 const app = new Hono();
@@ -26,9 +27,9 @@ app.post(
       throw new HTTPException(400, { message: "Total should be an integer" });
     }
 
-    if (total < 1 || total > 100) {
+    if (total < 1 || total > 2000) {
       throw new HTTPException(400, {
-        message: "Total should be between 1 and 100",
+        message: "Total should be between 1 and 2000",
       });
     }
 
@@ -38,7 +39,7 @@ app.post(
     const { total } = c.req.valid("json");
 
     const wallpapers = await scrapeUnsplash(total);
-    console.log(wallpapers);
+    await sendWallpaperScrapedEvent(wallpapers);
 
     return c.body(null, 204);
   },

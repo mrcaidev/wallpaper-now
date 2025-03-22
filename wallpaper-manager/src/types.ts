@@ -6,5 +6,4 @@ export type Wallpaper = {
   smallUrl: string;
   regularUrl: string;
   rawUrl: string;
-  deduplicationKey: string;
 };

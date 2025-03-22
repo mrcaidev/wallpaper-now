@@ -1,24 +1,29 @@
 import type { Wallpaper } from "@/types.ts";
 import { sql } from "bun";
 
-export async function persist(wallpapers: Wallpaper[]) {
-  const dbWallpapers = wallpapers.map((w) => ({
-    id: w.id,
-    description: w.description,
-    width: w.width,
-    height: w.height,
-    small_url: w.smallUrl,
-    regular_url: w.regularUrl,
-    raw_url: w.rawUrl,
-    deduplication_key: w.deduplicationKey,
+type WallpaperInput = Omit<Wallpaper, "id"> & { deduplicationKey: string };
+
+export async function persist(inputs: WallpaperInput[]) {
+  const snakeCaseInputs = inputs.map((i) => ({
+    description: i.description,
+    width: i.width,
+    height: i.height,
+    small_url: i.smallUrl,
+    regular_url: i.regularUrl,
+    raw_url: i.rawUrl,
+    deduplication_key: i.deduplicationKey,
   }));
 
-  const rows = await sql`
-    with rows as (
-      insert into wallpapers ${sql(dbWallpapers)}
-      on conflict (deduplication_key) do nothing
-      returning 1
-    )
-    select count(*) from rows`;
-  return rows[0].count as number;
+  const outputs = await sql`
+    insert into wallpapers ${sql(snakeCaseInputs)}
+    on conflict (deduplication_key) do nothing
+    returning
+      id,
+      description,
+      width,
+      height,
+      small_url as "smallUrl",
+      regular_url as "regularUrl",
+      raw_url as "rawUrl"`;
+  return outputs as Wallpaper[];
 }

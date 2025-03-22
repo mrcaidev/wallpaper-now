@@ -1,4 +1,3 @@
-import type { Wallpaper } from "@/types.ts";
 import { parallel } from "./parallel.ts";
 import { persist } from "./persist.ts";
 
@@ -52,24 +51,20 @@ async function scrapePage(page: number, pageSize: number) {
 
   const wallpapers = data
     .filter((w) => !w.premium && !w.plus)
-    .map(
-      (w) =>
-        ({
-          id: crypto.randomUUID(),
-          description: w.alt_description || w.description || "",
-          width: w.width,
-          height: w.height,
-          smallUrl: w.urls.small,
-          regularUrl: w.urls.regular,
-          rawUrl: w.urls.raw,
-          deduplicationKey: `unsplash:${w.id}`,
-        }) as Wallpaper,
-    );
-  const persistedCount = await persist(wallpapers);
+    .map((w) => ({
+      description: w.alt_description || w.description || "",
+      width: w.width,
+      height: w.height,
+      smallUrl: w.urls.small,
+      regularUrl: w.urls.regular,
+      rawUrl: w.urls.raw,
+      deduplicationKey: `unsplash:${w.id}`,
+    }));
+  const deduplicatedWallpapers = await persist(wallpapers);
 
   console.log(
-    `[Unsplash] Scraped page ${page}, expect ${pageSize}, got ${wallpapers.length}, persisted ${persistedCount}`,
+    `[Unsplash] Scraped page ${page}, expect ${pageSize}, got ${wallpapers.length}, persisted ${deduplicatedWallpapers.length}`,
   );
 
-  return wallpapers;
+  return deduplicatedWallpapers;
 }
