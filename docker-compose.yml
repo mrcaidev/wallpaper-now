@@ -153,6 +153,14 @@ services:
       - kafka-3
     restart: always
 
+  recommend-postgres:
+    build: ./pgvector-docker
+    environment:
+      - POSTGRES_USER=recommend
+      - POSTGRES_PASSWORD=3f9876c5d8d29c1c490cdaa119a7d5e3
+      - POSTGRES_DB=recommend
+    restart: always
+
 volumes:
   user-manager-postgres-data:
   wallpaper-manager-postgres-data:
