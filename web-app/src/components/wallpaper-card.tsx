@@ -1,11 +1,7 @@
-import {
-  useDislikeMutation,
-  useDownloadMutation,
-  useLikeMutation,
-} from "@/apis/interaction.ts";
-import { useMeQuery } from "@/apis/user.ts";
-import type { Wallpaper } from "@/types.ts";
-import { downloadImage } from "@/utils/download.ts";
+import { useInteractionMutation } from "@/api/interaction.ts";
+import { useMeQuery } from "@/api/user.ts";
+import { download } from "@/utils/download.ts";
+import type { Wallpaper } from "@/utils/types.ts";
 import {
   DownloadIcon,
   EyeOffIcon,
@@ -27,7 +23,7 @@ export function WallpaperCard({ wallpaper, imgClassname = "" }: Props) {
   return (
     <div className="group relative rounded-md overflow-hidden">
       <img
-        src={wallpaper.previewUrl}
+        src={wallpaper.regularUrl}
         alt={wallpaper.description}
         loading="lazy"
         decoding="async"
@@ -72,7 +68,7 @@ type AttitudeButtonProps = {
 function LikeButton({ wallpaper, attitude, setAttitude }: AttitudeButtonProps) {
   const { data: me } = useMeQuery();
 
-  const { mutate } = useLikeMutation(wallpaper.id);
+  const { mutate } = useInteractionMutation();
 
   if (!me) {
     return null;
@@ -83,11 +79,14 @@ function LikeButton({ wallpaper, attitude, setAttitude }: AttitudeButtonProps) {
 
     setAttitude((attitude) => (attitude === "liked" ? null : "liked"));
 
-    mutate(undefined, {
-      onError: () => {
-        setAttitude(oldAttitude);
+    mutate(
+      { wallpaperId: wallpaper.id, action: "like" },
+      {
+        onError: () => {
+          setAttitude(oldAttitude);
+        },
       },
-    });
+    );
   };
 
   return (
@@ -110,7 +109,7 @@ function DislikeButton({
 }: AttitudeButtonProps) {
   const { data: me } = useMeQuery();
 
-  const { mutate } = useDislikeMutation(wallpaper.id);
+  const { mutate } = useInteractionMutation();
 
   if (!me) {
     return null;
@@ -121,11 +120,14 @@ function DislikeButton({
 
     setAttitude((attitude) => (attitude === "disliked" ? null : "disliked"));
 
-    mutate(undefined, {
-      onError: () => {
-        setAttitude(oldAttitude);
+    mutate(
+      { wallpaperId: wallpaper.id, action: "dislike" },
+      {
+        onError: () => {
+          setAttitude(oldAttitude);
+        },
       },
-    });
+    );
   };
 
   return (
@@ -146,14 +148,14 @@ function DislikeButton({
 function DownloadButton({ wallpaper }: { wallpaper: Wallpaper }) {
   const { data: me } = useMeQuery();
 
-  const { mutate } = useDownloadMutation(wallpaper.id);
+  const { mutate } = useInteractionMutation();
 
   const handleClick = async () => {
     if (me) {
-      mutate();
+      mutate({ wallpaperId: wallpaper.id, action: "download" });
     }
 
-    await downloadImage(wallpaper.originalUrl, wallpaper.id);
+    await download(wallpaper.rawUrl, wallpaper.id);
   };
 
   return (

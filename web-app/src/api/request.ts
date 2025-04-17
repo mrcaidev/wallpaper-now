@@ -3,14 +3,15 @@ export class RequestError extends Error {
 
   public constructor(status: number, message: string) {
     super(message);
+    this.name = "RequestError";
     this.status = status;
   }
 }
 
-async function wrappedFetch<T>(url: string, init: RequestInit) {
+async function wrappedFetch<T>(input: string, init: RequestInit) {
   const token = localStorage.getItem("token");
 
-  const res = await fetch(import.meta.env.VITE_API_BASE_URL + url, {
+  const res = await fetch(import.meta.env.VITE_API_BASE_URL + input, {
     ...init,
     headers: {
       Authorization: token ? `Bearer ${token}` : "",
@@ -32,12 +33,16 @@ async function wrappedFetch<T>(url: string, init: RequestInit) {
 }
 
 export const request = {
-  get: async <T>(url: string, init: RequestInit = {}) => {
-    return await wrappedFetch<T>(url, { method: "GET", ...init });
+  get: async <T>(pathname: string, init: RequestInit = {}) => {
+    return await wrappedFetch<T>(pathname, { method: "GET", ...init });
   },
 
-  post: async <T>(url: string, data: unknown = {}, init: RequestInit = {}) => {
-    return await wrappedFetch<T>(url, {
+  post: async <T>(
+    pathname: string,
+    data: unknown = {},
+    init: RequestInit = {},
+  ) => {
+    return await wrappedFetch<T>(pathname, {
       method: "POST",
       body: JSON.stringify(data),
       ...init,
@@ -48,8 +53,12 @@ export const request = {
     });
   },
 
-  put: async <T>(url: string, data: unknown = {}, init: RequestInit = {}) => {
-    return await wrappedFetch<T>(url, {
+  put: async <T>(
+    pathname: string,
+    data: unknown = {},
+    init: RequestInit = {},
+  ) => {
+    return await wrappedFetch<T>(pathname, {
       method: "PUT",
       body: JSON.stringify(data),
       ...init,
@@ -60,8 +69,12 @@ export const request = {
     });
   },
 
-  patch: async <T>(url: string, data: unknown = {}, init: RequestInit = {}) => {
-    return await wrappedFetch<T>(url, {
+  patch: async <T>(
+    pathname: string,
+    data: unknown = {},
+    init: RequestInit = {},
+  ) => {
+    return await wrappedFetch<T>(pathname, {
       method: "PATCH",
       body: JSON.stringify(data),
       ...init,
@@ -72,7 +85,7 @@ export const request = {
     });
   },
 
-  delete: async <T>(url: string, init: RequestInit = {}) => {
-    return await wrappedFetch<T>(url, { method: "DELETE", ...init });
+  delete: async <T>(pathname: string, init: RequestInit = {}) => {
+    return await wrappedFetch<T>(pathname, { method: "DELETE", ...init });
   },
 };

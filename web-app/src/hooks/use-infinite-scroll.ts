@@ -1,16 +1,16 @@
 import { type RefObject, useEffect, useRef } from "react";
 
 export function useInfiniteScroll(
-  triggerRef: RefObject<HTMLElement | null>,
+  bottomRef: RefObject<HTMLElement | null>,
   callback: () => void,
 ) {
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
 
   useEffect(() => {
-    const trigger = triggerRef.current;
+    const bottom = bottomRef.current;
 
-    if (!trigger) {
+    if (!bottom) {
       return;
     }
 
@@ -23,10 +23,10 @@ export function useInfiniteScroll(
       { rootMargin: "200px" },
     );
 
-    observer.observe(trigger);
+    observer.observe(bottom);
 
     return () => {
-      observer.unobserve(trigger);
+      observer.unobserve(bottom);
     };
-  }, [triggerRef]);
+  }, [bottomRef]);
 }

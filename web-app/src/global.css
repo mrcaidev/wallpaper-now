@@ -1,6 +1,5 @@
 @import "tailwindcss";
-
-@plugin "tailwindcss-animate";
+@import "tw-animate-css";
 
 @theme {
   --font-sans: "Inter Variable", system-ui, sans-serif;
