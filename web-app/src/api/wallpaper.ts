@@ -1,4 +1,3 @@
-import { devSleep } from "@/utils/dev.ts";
 import type { Wallpaper } from "@/utils/types";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
@@ -70,7 +69,6 @@ export function useTrendingQuery() {
   return useQuery<Wallpaper[]>({
     queryKey: ["trending"],
     queryFn: async () => {
-      await devSleep(1000);
       return mockWallpapers.slice(0, 5);
     },
   });
@@ -80,7 +78,6 @@ export function useRecommendationQuery() {
   return useInfiniteQuery<Wallpaper[]>({
     queryKey: ["recommendation"],
     queryFn: async () => {
-      await devSleep(1000);
       return mockWallpapers;
     },
     getNextPageParam: () => true,

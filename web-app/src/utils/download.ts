@@ -1,5 +1,4 @@
 import { toast } from "sonner";
-import { devLog } from "./dev.ts";
 
 export async function downloadImage(url: string, filename: string) {
   try {
@@ -31,8 +30,6 @@ export async function downloadImage(url: string, filename: string) {
     document.body.removeChild(a);
 
     URL.revokeObjectURL(blobUrl);
-
-    devLog(`downloadImage: Downloaded image: ${filename}.${extension}`);
   } catch (error) {
     const reason = error instanceof Error ? error.message : "Unknown error";
     toast.error("Failed to download", { description: reason });
