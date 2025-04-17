@@ -1,8 +1,4 @@
-import {
-  useLogInMutation,
-  useLogOutMutation,
-  useMeQuery,
-} from "@/apis/user.ts";
+import { useLogInMutation, useLogOutMutation, useMeQuery } from "@/api/user.ts";
 import { Loader2Icon, LogInIcon, LogOutIcon, XIcon } from "lucide-react";
 import { type FormEventHandler, useState } from "react";
 import { Button } from "./ui/button.tsx";

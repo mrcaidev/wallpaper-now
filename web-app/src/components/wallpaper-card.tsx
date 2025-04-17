@@ -2,8 +2,8 @@ import {
   useDislikeMutation,
   useDownloadMutation,
   useLikeMutation,
-} from "@/apis/interaction.ts";
-import { useMeQuery } from "@/apis/user.ts";
+} from "@/api/interaction.ts";
+import { useMeQuery } from "@/api/user.ts";
 import type { Wallpaper } from "@/types.ts";
 import { downloadImage } from "@/utils/download.ts";
 import {

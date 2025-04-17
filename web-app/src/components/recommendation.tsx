@@ -1,4 +1,4 @@
-import { useRecommendationQuery } from "@/apis/wallpaper.ts";
+import { useRecommendationQuery } from "@/api/wallpaper.ts";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll.ts";
 import { useWallpaperColumns } from "@/hooks/use-wallpaper-columns.ts";
 import { Loader2Icon } from "lucide-react";
