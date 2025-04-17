@@ -1,6 +1,5 @@
 import type { User } from "@/types.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { request } from "./request.ts";
 
 export function useMeQuery() {
@@ -28,9 +27,6 @@ export function useLogInMutation() {
 
       queryClient.cancelQueries({ queryKey: ["me"] });
       queryClient.setQueryData(["me"], me);
-    },
-    onError: (error) => {
-      toast.error("Failed to log in", { description: error.message });
     },
   });
 }
