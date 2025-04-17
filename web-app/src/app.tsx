@@ -5,7 +5,7 @@ import { NowTrending } from "./components/now-trending.tsx";
 import { QueryProvider } from "./components/query-provider.tsx";
 import { Recommendation } from "./components/recommendation.tsx";
 import { Toaster } from "./components/ui/sonner.tsx";
-import "./globals.css";
+import "./global.css";
 
 export function App() {
   return (

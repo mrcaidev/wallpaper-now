@@ -9,7 +9,7 @@
   },
   "linter": {
     "enabled": true,
-    "ignore": ["src/components/ui", "src/globals.css"]
+    "ignore": ["src/components/ui", "src/global.css"]
   },
   "formatter": {
     "enabled": true,
