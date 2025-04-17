@@ -12,11 +12,12 @@ export function useTrendingQuery() {
 }
 
 export function useRecommendationQuery() {
-  return useInfiniteQuery<Wallpaper[]>({
+  return useInfiniteQuery<Wallpaper[], Error, Wallpaper[]>({
     queryKey: ["recommendation"],
     queryFn: async () => {
       return await request.get("/recommendation");
     },
+    select: (data) => data.pages.flat(),
     getNextPageParam: () => true,
     initialPageParam: true,
   });

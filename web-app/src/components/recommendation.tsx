@@ -19,9 +19,13 @@ export function Recommendation() {
 }
 
 function Masonry() {
-  const { data, isPending, error, fetchNextPage } = useRecommendationQuery();
-  const wallpapers = data?.pages.flat() ?? [];
-  const columns = useWallpaperColumns(wallpapers);
+  const {
+    data: wallpapers,
+    isPending,
+    error,
+    fetchNextPage,
+  } = useRecommendationQuery();
+  const columns = useWallpaperColumns(wallpapers ?? []);
 
   if (isPending) {
     return (
