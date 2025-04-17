@@ -4,7 +4,7 @@ import {
   useLikeMutation,
 } from "@/api/interaction.ts";
 import { useMeQuery } from "@/api/user.ts";
-import { downloadImage } from "@/utils/download.ts";
+import { download } from "@/utils/download.ts";
 import type { Wallpaper } from "@/utils/types.ts";
 import {
   DownloadIcon,
@@ -153,7 +153,7 @@ function DownloadButton({ wallpaper }: { wallpaper: Wallpaper }) {
       mutate();
     }
 
-    await downloadImage(wallpaper.originalUrl, wallpaper.id);
+    await download(wallpaper.originalUrl, wallpaper.id);
   };
 
   return (

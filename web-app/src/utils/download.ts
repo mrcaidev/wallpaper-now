@@ -1,22 +1,15 @@
 import { toast } from "sonner";
 
-export async function downloadImage(url: string, filename: string) {
+export async function download(url: string, filename: string) {
   try {
     const res = await fetch(url);
 
     if (!res.ok) {
-      toast.error("Failed to download", { description: res.statusText });
+      toast.error("Download failed");
+      return;
     }
 
-    const contentType = res.headers.get("Content-Type") || "";
-
-    if (!contentType.startsWith("image/")) {
-      toast.error("Failed to download", {
-        description: "This URL does not point to an image",
-      });
-    }
-
-    const extension = contentType.split("/")[1] || "jpg";
+    const extension = res.headers.get("Content-Type")?.split("/")[1] || "jpg";
 
     const blob = await res.blob();
     const blobUrl = URL.createObjectURL(blob);
@@ -31,7 +24,6 @@ export async function downloadImage(url: string, filename: string) {
 
     URL.revokeObjectURL(blobUrl);
   } catch (error) {
-    const reason = error instanceof Error ? error.message : "Unknown error";
-    toast.error("Failed to download", { description: reason });
+    toast.error(error instanceof Error ? error.message : "Download failed");
   }
 }
