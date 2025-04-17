@@ -1,8 +1,9 @@
 import { useRecommendationQuery } from "@/api/wallpaper.ts";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll.ts";
-import { useWallpaperColumns } from "@/hooks/use-wallpaper-columns.ts";
+import { useMediaQuery } from "@/hooks/use-media-query.ts";
+import type { Wallpaper } from "@/utils/types.ts";
 import { Loader2Icon } from "lucide-react";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Skeleton } from "./ui/skeleton.tsx";
 import { WallpaperCard } from "./wallpaper-card.tsx";
 
@@ -80,6 +81,28 @@ function Masonry() {
       <LoadTrigger load={fetchNextPage} />
     </>
   );
+}
+
+function useWallpaperColumns(wallpapers: Wallpaper[]) {
+  const lg = useMediaQuery("(min-width: 1024px)");
+  const sm = useMediaQuery("(min-width: 640px)");
+  const columnCount = lg ? 3 : sm ? 2 : 1;
+
+  return useMemo(() => {
+    const columns = Array.from(
+      { length: columnCount },
+      () => [] as Wallpaper[],
+    );
+    const heights = Array(columnCount).fill(0);
+
+    for (const wallpaper of wallpapers) {
+      const lowestIndex = heights.indexOf(Math.min(...heights));
+      columns[lowestIndex]?.push(wallpaper);
+      heights[lowestIndex] += wallpaper.height / wallpaper.width;
+    }
+
+    return columns;
+  }, [wallpapers, columnCount]);
 }
 
 function LoadTrigger({ load }: { load: () => void }) {
