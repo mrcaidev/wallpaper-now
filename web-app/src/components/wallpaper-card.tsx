@@ -27,7 +27,7 @@ export function WallpaperCard({ wallpaper, imgClassname = "" }: Props) {
   return (
     <div className="group relative rounded-md overflow-hidden">
       <img
-        src={wallpaper.previewUrl}
+        src={wallpaper.regularUrl}
         alt={wallpaper.description}
         loading="lazy"
         decoding="async"
@@ -153,7 +153,7 @@ function DownloadButton({ wallpaper }: { wallpaper: Wallpaper }) {
       mutate();
     }
 
-    await download(wallpaper.originalUrl, wallpaper.id);
+    await download(wallpaper.rawUrl, wallpaper.id);
   };
 
   return (

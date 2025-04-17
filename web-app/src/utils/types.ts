@@ -9,8 +9,8 @@ export type Wallpaper = {
   description: string;
   width: number;
   height: number;
-  previewUrl: string;
-  originalUrl: string;
+  smallUrl: string;
+  regularUrl: string;
+  rawUrl: string;
   attitude: "liked" | "disliked" | null;
-  score: number;
 };
