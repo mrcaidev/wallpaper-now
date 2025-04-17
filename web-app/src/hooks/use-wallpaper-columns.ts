@@ -1,4 +1,4 @@
-import type { Wallpaper } from "@/types.ts";
+import type { Wallpaper } from "@/utils/types.ts";
 import { useMemo } from "react";
 import { useMediaQuery } from "./use-media-query.ts";
 

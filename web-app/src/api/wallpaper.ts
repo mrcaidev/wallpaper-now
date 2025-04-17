@@ -1,5 +1,5 @@
-import type { Wallpaper } from "@/types.ts";
 import { devSleep } from "@/utils/dev.ts";
+import type { Wallpaper } from "@/utils/types";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 const mockWallpapers: Wallpaper[] = [

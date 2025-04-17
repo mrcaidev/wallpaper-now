@@ -4,8 +4,8 @@ import {
   useLikeMutation,
 } from "@/api/interaction.ts";
 import { useMeQuery } from "@/api/user.ts";
-import type { Wallpaper } from "@/types.ts";
 import { downloadImage } from "@/utils/download.ts";
+import type { Wallpaper } from "@/utils/types.ts";
 import {
   DownloadIcon,
   EyeOffIcon,

@@ -1,4 +1,4 @@
-import type { User } from "@/types.ts";
+import type { User } from "@/utils/types.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { request } from "./request.ts";
 
