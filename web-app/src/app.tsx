@@ -1,11 +1,8 @@
-import "@fontsource-variable/inter/index.css";
-import "@fontsource/rochester/index.css";
 import { Header } from "./components/header.tsx";
 import { NowTrending } from "./components/now-trending.tsx";
 import { QueryProvider } from "./components/query-provider.tsx";
 import { Recommendation } from "./components/recommendation.tsx";
 import { Toaster } from "./components/ui/sonner.tsx";
-import "./global.css";
 
 export function App() {
   return (
