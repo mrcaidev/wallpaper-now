@@ -2,7 +2,7 @@ import logging
 import sys
 from src.spark_processor import get_spark_session, process_stream
 
-# Configure logging
+# 配置日志记录
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -14,24 +14,24 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def main():
-    logger.info("Starting Trending Wallpaper Analyzer...")
+    logger.info("启动趋势壁纸分析器...")
     spark = None
     try:
-        # Get Spark Session
+        # 获取 Spark Session
         spark = get_spark_session()
 
-        # Start processing the stream
+        # 开始处理流数据
         process_stream(spark)
 
     except Exception as e:
-        logger.critical(f"An unexpected error occurred: {e}", exc_info=True)
+        logger.critical(f"发生意外错误: {e}", exc_info=True)
         sys.exit(1)
     finally:
         if spark:
-            logger.info("Stopping SparkSession...")
+            logger.info("停止 SparkSession...")
             spark.stop()
-            logger.info("SparkSession stopped.")
-        logger.info("Trending Wallpaper Analyzer finished.")
+            logger.info("SparkSession 已停止。")
+        logger.info("趋势壁纸分析器已结束。")
 
 if __name__ == "__main__":
     main() 
