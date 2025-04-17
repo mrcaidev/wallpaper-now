@@ -16,7 +16,7 @@ const client = new QueryClient({
     },
     mutations: {
       onError: (error) => {
-        toast.error("Error", { description: error.message });
+        toast.error(error.message);
       },
     },
   },
