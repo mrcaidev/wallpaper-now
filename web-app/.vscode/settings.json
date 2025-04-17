@@ -4,5 +4,8 @@
     "source.organizeImports.biome": "explicit"
   },
   "editor.defaultFormatter": "biomejs.biome",
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
   "typescript.preferences.importModuleSpecifierEnding": "js"
 }
