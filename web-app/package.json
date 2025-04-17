@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
-    "check": "biome check"
+    "check": "tsc && biome check"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.5",
