@@ -5,3 +5,4 @@ POSTGRESQL_CONFIG = {
     "host": "recommend-postgres",
     "port": "5432"
 }
+vector_dimensions = 512

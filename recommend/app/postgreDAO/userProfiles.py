@@ -20,6 +20,8 @@ DB_CONFIG = DBConfig.POSTGRESQL_CONFIG
 
 register_uuid()
 
+dimensions = DBConfig.vector_dimensions
+
 @contextmanager
 def get_db_connection():
     conn = psycopg2.connect(**DB_CONFIG)
@@ -68,7 +70,7 @@ def vector_to_pg_format(vector):
 def generate_user_default_embedding():
     """生成用户默认嵌入向量"""
     # 生成一个默认向量
-    return [0.5] * 768
+    return [0.5] * 3
 
 def calculate_new_vector(user_embedding, wallpaper_embedding, weight):
     result_vector = np.multiply(1-weight, ast.literal_eval(user_embedding)) + np.multiply(weight, ast.literal_eval(wallpaper_embedding))
@@ -95,13 +97,15 @@ def insert_default_user_profile(user_id):
         cursor.execute(
             """
             INSERT INTO user_profiles (user_id, preference_vector, norm_preference_vector, last_updated)
-            VALUES (%s, %s::vector(768), %s::vector(768), %s)
+            VALUES (%s, %s::vector(%s), %s::vector(%s), %s)
             RETURNING user_id, preference_vector, norm_preference_vector, last_updated
             """,
             (
                 user_id,
                 vector_to_pg_format(pref_vector),
+                dimensions,
                 vector_to_pg_format(norm_vector),
+                dimensions,
                 datetime.now()
             )
         )

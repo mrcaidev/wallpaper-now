@@ -17,6 +17,8 @@ DB_CONFIG = DBConfig.POSTGRESQL_CONFIG
 # 注册UUID类型适配器
 register_uuid()
 
+dimensions = DBConfig.vector_dimensions
+
 @contextmanager
 def get_db_connection():
     conn = psycopg2.connect(**DB_CONFIG)
