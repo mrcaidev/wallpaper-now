@@ -61,4 +61,10 @@ A `Dockerfile` is provided for containerization.
 
 ## Configuration
 
-See `.env.example` for configurable parameters like Kafka details, Spark settings (window duration, slide duration, top N), and Redis connection info. 
+See `.env.example` for configurable parameters like Kafka details, Spark settings (window duration, slide duration, top N), and Redis connection info.
+
+## Running the API server
+
+```bash
+uvicorn src.api:app --host 0.0.0.0 --port 8000
+``` 
