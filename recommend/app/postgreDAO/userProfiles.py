@@ -70,7 +70,7 @@ def vector_to_pg_format(vector):
 def generate_user_default_embedding():
     """生成用户默认嵌入向量"""
     # 生成一个默认向量
-    return [0.5] * 3
+    return [0.5] * dimensions
 
 def calculate_new_vector(user_embedding, wallpaper_embedding, weight):
     result_vector = np.multiply(1-weight, ast.literal_eval(user_embedding)) + np.multiply(weight, ast.literal_eval(wallpaper_embedding))
