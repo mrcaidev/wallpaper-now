@@ -2,6 +2,16 @@
 # 选择一个与 PySpark 和你的环境兼容的版本
 FROM python:3.9-slim
 
+# 安装Java和必要工具
+RUN apt-get update && \
+    apt-get install -y procps default-jdk wget && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# 设置Java环境变量
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+ENV PATH=$PATH:$JAVA_HOME/bin
+
 # 设置 Python 环境变量
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -20,12 +30,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 将应用程序代码复制到容器中
 COPY src/ /app/src/
+COPY download_kafka_jar.py /app/
 # 复制 .env 文件 - 谨慎使用！推荐使用运行时环境变量。
 # 如果取消注释此行，请确保在构建期间 .env 文件存在。
 # COPY .env /app/.env
+
+# 下载Kafka连接器
+RUN python download_kafka_jar.py
 
 # 运行应用程序的命令
 # 确保 Spark 环境（如 SPARK_HOME, Hadoop 配置）可用
 # 这可能需要一个安装了 Spark 的自定义基础镜像，或者挂载 Spark 二进制文件
 # 如果 Spark 在外部运行（例如集群），则可能只需要 PySpark 库
-CMD ["python", "src/main.py"] 
+CMD ["python", "-m", "src.main"] 

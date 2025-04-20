@@ -16,50 +16,7 @@ This service analyzes real-time user interaction data from Kafka using Spark Str
 - Kafka Cluster
 - Redis Server
 
-## Setup
 
-1.  **Clone the repository** (if applicable)
-2.  **Create a virtual environment** (recommended):
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate # On Windows use `.venv\Scripts\activate`
-    ```
-3.  **Install dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  **Configure environment variables**:
-    - Copy `.env.example` to `.env`
-    - Fill in the required values in `.env` (Kafka brokers, topic, Spark master, Redis details).
-
-## Running the Analyzer
-
-```bash
-# Ensure your Spark environment is correctly set up (e.g., SPARK_HOME)
-python src/main.py
-```
-
-Or, if using `spark-submit`:
-
-```bash
-# Package your application if necessary (e.g., into a zip file)
-# spark-submit --master <your_spark_master> --packages org.apache.spark:spark-sql-kafka-0-10_2.12:<spark_version> src/main.py
-```
-
-## Docker (Recommended)
-
-A `Dockerfile` is provided for containerization.
-
-1.  **Build the image**:
-    ```bash
-    docker build -t trending-analyzer .
-    ```
-2.  **Run the container** (ensure Kafka, Redis are accessible):
-    ```bash
-    docker run --rm --env-file .env trending-analyzer
-    ```
-
-## Configuration
 
 See `.env.example` for configurable parameters like Kafka details, Spark settings (window duration, slide duration, top N), and Redis connection info.
 
@@ -67,4 +24,32 @@ See `.env.example` for configurable parameters like Kafka details, Spark setting
 
 ```bash
 uvicorn src.api:app --host 0.0.0.0 --port 8000
-``` 
+```
+
+## API Documentation
+
+### Trending Wallpapers Endpoint
+
+Get a list of currently trending wallpapers sorted by popularity.
+
+- **URL**: `/api/v1/wallpapers/trending`
+- **Method**: GET
+- **Query Parameters**:
+  - `limit` (optional): Number of results to return (default: 10, max: 100)
+  - `offset` (optional): Number of results to skip (default: 0)
+
+#### Response Format
+
+The API returns an ordered array of wallpaper UUIDs, with the most trending wallpapers first:
+
+```json
+[
+  "123e4567-e89b-12d3-a456-426614174000",
+  "7bac9210-5a9d-4911-8d1d-292c44310a3a",
+  "9f8e7d6c-5b4a-3c2d-1e0f-9a8b7c6d5e4f",
+  "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+  "f1e2d3c4-b5a6-9876-5432-1fedcba98765"
+]
+```
+
+Each ID is in UUID format (`8-4-4-4-12` hexadecimal digits) and corresponds to a wallpaper in the wallpaper-manager service. 

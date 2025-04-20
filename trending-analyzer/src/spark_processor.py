@@ -4,8 +4,8 @@ from pyspark.sql.functions import from_json, col, window, sum as _sum, desc, exp
 from pyspark.sql.types import StructType, StructField, StringType, TimestampType, DoubleType # 从 PySpark SQL 类型模块导入所需类型
 from pyspark.sql.window import Window  # 从 PySpark SQL 窗口模块导入 Window
 
-import config  # 导入 config 模块
-from redis_utils import update_trending_wallpapers  # 从 redis_utils 模块导入更新函数
+from src import config  # 导入 config 模块
+from src.redis_utils import update_trending_wallpapers  # 从 redis_utils 模块导入更新函数
 
 logger = logging.getLogger(__name__) # 获取当前模块的 logger 实例
 
@@ -54,6 +54,9 @@ def process_stream(spark: SparkSession):  # 定义处理数据流的主函数，
     """  # 函数文档字符串
     schema = define_kafka_schema()  # 调用函数获取 Kafka 消息的 Schema
 
+    logger.info(f"正在连接Kafka集群: {config.KAFKA_BROKERS}")
+    logger.info(f"订阅Kafka主题: {config.KAFKA_TOPIC}")
+
     # 1. 从 Kafka 读取数据
     kafka_df = (  # 开始读取 Kafka 数据流
         spark.readStream  # 创建 DataStreamReader
@@ -64,7 +67,9 @@ def process_stream(spark: SparkSession):  # 定义处理数据流的主函数，
         .option("failOnDataLoss", "false") # 设置在数据丢失时不失败
         .load()  # 加载数据流，返回 DataFrame
     )
-
+    
+    logger.info("成功连接到Kafka，开始处理流数据...")
+    
     # 2. 解析 JSON 消息
     # 假设 Kafka 消息的值是 JSON 字符串
     parsed_df = (  # 开始解析 JSON 数据
@@ -98,39 +103,65 @@ def process_stream(spark: SparkSession):  # 定义处理数据流的主函数，
         .agg(_sum("weight").alias("total_score_change")) # 对每个分组内的 weight 列求和，并将结果命名为 total_score_change
     )
 
-    # 重要提示：这里的 'total_score_change' 代表窗口内权重 *变化量* 的总和。
-    # 这可能不是你想要的绝对趋势分数，除非上游的 interaction collector 保证发送初始状态。
-    # 如果你需要 *绝对* 分数，逻辑可能需要更复杂，
-    # 可能涉及状态管理（例如，mapGroupsWithState）或
-    # 假设窗口捕获了足够的历史记录来近似当前状态。
-    # 目前，我们假设对变化量求和是所需的逻辑。
-    # 如果需要绝对分数，则需要重新考虑聚合部分。
-
-    # 4. 基于聚合的分数变化量，在每个窗口内对壁纸进行排名
-    # 定义排名用的窗口规范
-    rank_window_spec = Window.partitionBy("window").orderBy(desc("total_score_change")) # 定义窗口函数：按窗口分区，按 total_score_change 降序排序
-
-    ranked_df = (  # 开始计算排名
-        windowed_agg_df
-        # 在定义的窗口规范上使用 rank() 函数
-        .withColumn("rank", expr("rank() OVER (PARTITION BY window ORDER BY total_score_change DESC)")) # 添加排名列，使用 rank 函数和定义的窗口规范
-        .filter(col("rank") <= config.TOP_N)  # 筛选出排名在前 N 的记录
-        .select(  # 选择最终需要的列
-            col("window.start").alias("window_start"),  # 选择窗口起始时间，重命名为 window_start
-            col("window.end").alias("window_end"),  # 选择窗口结束时间，重命名为 window_end
-            col("wallpaper_id"),  # 选择壁纸 ID
-            col("total_score_change").alias("score") # 选择聚合分数，为了 Redis 输出的一致性而重命名为 score
+    # 定义处理每个微批次的函数，在这里执行排名操作
+    def process_batch(batch_df, batch_id):
+        if batch_df.isEmpty():
+            logger.info(f"批次 {batch_id} 为空，无数据可处理")
+            return
+        
+        logger.info(f"处理批次 {batch_id}，包含 {batch_df.count()} 行数据")
+        
+        # 在批处理模式中应用窗口排名函数
+        # 定义排名用的窗口规范
+        rank_window_spec = Window.partitionBy("window").orderBy(desc("total_score_change"))
+        
+        # 应用排名并过滤前N个
+        ranked_df = (
+            batch_df
+            .withColumn("rank", expr("rank() OVER (PARTITION BY window ORDER BY total_score_change DESC)"))
+            .filter(col("rank") <= config.TOP_N)
+            .select(
+                col("window.start").alias("window_start"),
+                col("window.end").alias("window_end"),
+                col("wallpaper_id"),
+                col("total_score_change").alias("score")
+            )
         )
-     )
+        
+        # 输出一些信息作为日志
+        top_wallpapers = ranked_df.collect()
+        if top_wallpapers:
+            logger.info(f"本批次发现 {len(top_wallpapers)} 个热门壁纸")
+            
+        # 更新Redis
+        update_trending_wallpapers(ranked_df)
 
-    # 5. 将结果写入 Redis (使用 foreachBatch)
+    # 5. 应用批处理模式
     query = (  # 开始定义流式写入操作
-        ranked_df.writeStream  # 创建 DataStreamWriter
+        windowed_agg_df.writeStream  # 创建 DataStreamWriter
         .outputMode("complete") # 设置输出模式为 Complete (每次输出完整的聚合结果)
-        .foreachBatch(update_trending_wallpapers) # 对每个微批次应用自定义的写入 Redis 函数
+        .foreachBatch(process_batch) # 对每个微批次应用自定义处理函数
         .option("checkpointLocation", spark.conf.get("spark.sql.streaming.checkpointLocation")) # 设置检查点位置，从 Spark 配置中获取
         .start()  # 启动流式查询
     )
 
-    logger.info("流处理查询已启动。等待终止...")
+    logger.info("流处理查询已启动，正在等待数据流...")
+    
+    # 添加监控日志，定期显示查询状态
+    try:
+        while query.isActive:
+            queryStatus = query.status
+            logger.info(f"查询状态: {queryStatus}")
+            if query.recentProgress:
+                logger.info(f"接收到的数据行数: {query.recentProgress[0].get('numInputRows', 0)}")
+            else:
+                logger.info("尚未接收到数据")
+            
+            # 每30秒输出一次状态日志
+            import time
+            time.sleep(30)
+    except Exception as e:
+        logger.error(f"监控查询状态时出错: {e}")
+    
+    logger.info("流处理查询已终止。等待终止...")
     query.awaitTermination() # 阻塞当前线程，直到流式查询终止 

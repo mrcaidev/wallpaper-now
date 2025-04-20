@@ -1,7 +1,7 @@
 import redis  # 导入 Redis 客户端库
 import logging  # 导入日志模块
 from pyspark.sql import Row  # 从 PySpark SQL 模块导入 Row 类型
-import config  # 导入 config 模块
+from src import config  # 导入 config 模块
 
 logger = logging.getLogger(__name__)  # 获取当前模块的 logger 实例
 
