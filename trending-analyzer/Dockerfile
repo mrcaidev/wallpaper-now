@@ -33,13 +33,9 @@ RUN pip install --no-cache-dir fastapi uvicorn
 
 # 将应用程序代码复制到容器中
 COPY src/ /app/src/
-COPY download_kafka_jar.py /app/
-# 复制 .env 文件 - 谨慎使用！推荐使用运行时环境变量。
-# 如果取消注释此行，请确保在构建期间 .env 文件存在。
-# COPY .env /app/.env
 
 # 下载Kafka连接器
-RUN python download_kafka_jar.py
+RUN python -m src.download_kafka_jar
 
 # 创建启动脚本
 RUN echo '#!/bin/bash\n\
