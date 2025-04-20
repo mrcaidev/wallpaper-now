@@ -28,6 +28,9 @@ WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# 确保安装了FastAPI和uvicorn
+RUN pip install --no-cache-dir fastapi uvicorn
+
 # 将应用程序代码复制到容器中
 COPY src/ /app/src/
 COPY download_kafka_jar.py /app/
@@ -38,8 +41,17 @@ COPY download_kafka_jar.py /app/
 # 下载Kafka连接器
 RUN python download_kafka_jar.py
 
-# 运行应用程序的命令
-# 确保 Spark 环境（如 SPARK_HOME, Hadoop 配置）可用
-# 这可能需要一个安装了 Spark 的自定义基础镜像，或者挂载 Spark 二进制文件
-# 如果 Spark 在外部运行（例如集群），则可能只需要 PySpark 库
-CMD ["python", "-m", "src.main"] 
+# 创建启动脚本
+RUN echo '#!/bin/bash\n\
+# 启动API服务\n\
+uvicorn src.api:app --host 0.0.0.0 --port 8000 &\n\
+\n\
+# 启动主应用程序\n\
+python -m src.main\n' > /app/start.sh && \
+    chmod +x /app/start.sh
+
+# 暴露API端口
+EXPOSE 8000
+
+# 运行启动脚本
+CMD ["/app/start.sh"] 

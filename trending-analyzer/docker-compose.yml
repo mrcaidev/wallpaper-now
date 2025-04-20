@@ -19,9 +19,31 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - SPARK_MASTER=local[*]
+    ports:
+      - "8000:8000"
     volumes:
       - ./src:/app/src
       - ./checkpoint:/tmp/spark_checkpoints_trending
+    networks:
+      - wallpaper-network
+
+  # 数据生成器 - 生成模拟数据发送到Kafka
+  data-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: data-generator
+    restart: unless-stopped
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    environment:
+      - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+      - KAFKA_TOPIC=InteractionCollected
+    volumes:
+      - ./tools:/app/tools
+    command: python /app/tools/stubs/kafka_stub_generator.py --users 100 --wallpapers 50 --threads 2 --batch 50 --interval 1 --duration 1800
     networks:
       - wallpaper-network
 
@@ -43,6 +65,7 @@ services:
       - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
       - KAFKA_NUM_PARTITIONS=3
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
     volumes:
       - kafka-1-data:/var/lib/kafka/data
     networks:
@@ -65,6 +88,7 @@ services:
       - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
       - KAFKA_NUM_PARTITIONS=3
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
     volumes:
       - kafka-2-data:/var/lib/kafka/data
     networks:
@@ -87,6 +111,7 @@ services:
       - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
       - KAFKA_NUM_PARTITIONS=3
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
     volumes:
       - kafka-3-data:/var/lib/kafka/data
     networks:

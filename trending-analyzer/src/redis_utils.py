@@ -28,6 +28,7 @@ def get_redis_client():  # 定义获取 Redis 客户端的函数
 def update_trending_wallpapers(batch_df):  # 定义更新趋势壁纸的函数，接收 Spark DataFrame
     """
     Updates the trending wallpapers sorted set in Redis based on the batch DataFrame.
+    Stores all wallpapers without limiting to TOP_N.
     Assumes batch_df contains columns 'wallpaper_id' and 'score'.
     """  # 函数文档字符串
     try:  # 开始异常处理块
@@ -37,24 +38,21 @@ def update_trending_wallpapers(batch_df):  # 定义更新趋势壁纸的函数�
             return  # 如果获取失败，则返回
 
         # 将 Spark DataFrame 行转换为 Redis ZADD 所需的字典
-        # 将数据收集到 driver 节点 - 注意大型批次可能导致的内存问题
         trending_data = batch_df.rdd.map(lambda row: (row.wallpaper_id, row.score)).collect() # 转换 RDD 并收集结果到 Driver
 
         if not trending_data:  # 检查是否有趋势数据
-            logger.info("此批次中没有需要更新到 Redis 的趋势数据。")
+            logger.info("此批次中没有需要更新到 Redis 的壁纸数据。")
             return  # 如果没有数据，则返回
 
         # 使用 pipeline 进行原子更新
         pipe = r.pipeline()  # 创建 Redis pipeline
-        # 在添加新数据前清除现有的有序集合
-        pipe.delete(config.REDIS_TRENDING_KEY)  # 在 pipeline 中添加删除命令
-        # 使用 ZADD 添加新分数 {score1 member1 score2 member2 ...}
-        # 注意：ZADD 期望 score 在前，member 在后
+
+        # 注意：我们不再删除现有数据，而是累积更新
+        # 使用 ZADD 添加新分数，如果壁纸已存在则更新分数
         members_scores = {item[0]: item[1] for item in trending_data} # 将数据转换为 {member: score} 字典
         pipe.zadd(config.REDIS_TRENDING_KEY, members_scores) # 在 pipeline 中添加 ZADD 命令
 
-        # 可选：如果有序集合变得过大，进行修剪（虽然排名已经做了这个限制，但可以保留以防万一）
-        # pipe.zremrangebyrank(config.REDIS_TRENDING_KEY, 0, -config.TOP_N - 1) # (注释掉) 按排名移除超出范围的成员
+        # 已经移除数量限制，所有壁纸数据都会保留
 
         results = pipe.execute() # 执行 pipeline 中的所有命令
         logger.info(f"已更新 Redis 有序集合 '{config.REDIS_TRENDING_KEY}'，包含 {len(trending_data)} 项。Pipeline 结果: {results}")

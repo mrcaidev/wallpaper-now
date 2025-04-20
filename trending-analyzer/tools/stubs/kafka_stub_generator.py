@@ -21,7 +21,7 @@ load_dotenv()
 
 # Kafka 配置
 KAFKA_BROKERS = os.getenv("KAFKA_BROKERS", "localhost:9092")
-KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "interaction_collected")
+KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "InteractionCollected")
 
 # 模拟数据配置
 DEFAULT_TOTAL_USERS = 1000      # 模拟用户数量
@@ -69,8 +69,8 @@ class KafkaStubGenerator:
         # 生成模拟用户ID列表
         self.user_ids = [f"user-{str(uuid.uuid4())[:8]}" for _ in range(total_users)]
         
-        # 生成模拟壁纸ID列表
-        self.wallpaper_ids = [f"wallpaper-{str(uuid.uuid4())[:8]}" for _ in range(total_wallpapers)]
+        # 生成模拟壁纸ID列表 - 使用UUID格式以匹配wallpaper-manager
+        self.wallpaper_ids = [str(uuid.uuid4()) for _ in range(total_wallpapers)]
         
         # 标记热门壁纸
         hot_count = int(total_wallpapers * HOT_WALLPAPERS_PERCENTAGE)
@@ -84,6 +84,9 @@ class KafkaStubGenerator:
         self.message_count = 0
         self.start_time = None
         self.stop_flag = threading.Event()
+        
+        # 等待Kafka可用
+        self._wait_for_kafka()
         
         # 创建Kafka生产者
         self.producer = KafkaProducer(
@@ -102,6 +105,29 @@ class KafkaStubGenerator:
         print(f"- 生产者线程数: {threads}")
         print(f"- 每批次消息数: {batch_size}")
         print(f"- 批次间隔: {interval} 秒")
+    
+    def _wait_for_kafka(self):
+        """等待Kafka可用"""
+        from kafka.admin import KafkaAdminClient
+        from kafka.errors import NoBrokersAvailable, NodeNotReadyError
+        
+        max_retries = 12  # 最大重试次数
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                # 尝试连接Kafka
+                admin = KafkaAdminClient(bootstrap_servers=KAFKA_BROKERS)
+                admin.close()
+                print("Kafka连接成功")
+                return
+            except (NoBrokersAvailable, NodeNotReadyError) as e:
+                retry_count += 1
+                wait_time = 10  # 每次等待10秒
+                print(f"Kafka连接失败: {e}. 等待 {wait_time} 秒后重试 ({retry_count}/{max_retries})...")
+                time.sleep(wait_time)
+        
+        raise Exception("无法连接到Kafka，超过最大重试次数")
     
     def _select_user_id(self) -> str:
         """智能选择一个用户ID，有更高概率选择活跃用户"""

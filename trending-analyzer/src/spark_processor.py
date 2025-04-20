@@ -56,20 +56,39 @@ def process_stream(spark: SparkSession):  # 定义处理数据流的主函数，
 
     logger.info(f"正在连接Kafka集群: {config.KAFKA_BROKERS}")
     logger.info(f"订阅Kafka主题: {config.KAFKA_TOPIC}")
+    
+    # 添加等待主题创建的逻辑
+    max_retries = 12  # 最大重试次数，每次等待10秒，总共最多等待2分钟
+    retry_count = 0
+    
+    while True:
+        try:
+            # 尝试创建Kafka数据流
+            kafka_df = (  # 开始读取 Kafka 数据流
+                spark.readStream  # 创建 DataStreamReader
+                .format("kafka")  # 指定数据源格式为 Kafka
+                .option("kafka.bootstrap.servers", config.KAFKA_BROKERS)  # 设置 Kafka 服务器地址
+                .option("subscribe", config.KAFKA_TOPIC)  # 设置要订阅的 Kafka 主题
+                .option("startingOffsets", "latest") # 设置从最新的偏移量开始读取
+                .option("failOnDataLoss", "false") # 设置在数据丢失时不失败
+                .load()  # 加载数据流，返回 DataFrame
+            )
+            
+            # 如果成功创建，退出循环
+            logger.info("成功连接到Kafka，开始处理流数据...")
+            break
+            
+        except Exception as e:
+            if "UnknownTopicOrPartitionException" in str(e) and retry_count < max_retries:
+                retry_count += 1
+                wait_time = 10  # 等待10秒后重试
+                logger.warning(f"主题 {config.KAFKA_TOPIC} 不存在，等待 {wait_time} 秒后重试 ({retry_count}/{max_retries})...")
+                time.sleep(wait_time)
+            else:
+                # 超过最大重试次数或其他错误
+                logger.error(f"连接Kafka失败: {e}")
+                raise  # 重新抛出异常
 
-    # 1. 从 Kafka 读取数据
-    kafka_df = (  # 开始读取 Kafka 数据流
-        spark.readStream  # 创建 DataStreamReader
-        .format("kafka")  # 指定数据源格式为 Kafka
-        .option("kafka.bootstrap.servers", config.KAFKA_BROKERS)  # 设置 Kafka 服务器地址
-        .option("subscribe", config.KAFKA_TOPIC)  # 设置要订阅的 Kafka 主题
-        .option("startingOffsets", "latest") # 设置从最新的偏移量开始读取
-        .option("failOnDataLoss", "false") # 设置在数据丢失时不失败
-        .load()  # 加载数据流，返回 DataFrame
-    )
-    
-    logger.info("成功连接到Kafka，开始处理流数据...")
-    
     # 2. 解析 JSON 消息
     # 假设 Kafka 消息的值是 JSON 字符串
     parsed_df = (  # 开始解析 JSON 数据
@@ -115,11 +134,10 @@ def process_stream(spark: SparkSession):  # 定义处理数据流的主函数，
         # 定义排名用的窗口规范
         rank_window_spec = Window.partitionBy("window").orderBy(desc("total_score_change"))
         
-        # 应用排名并过滤前N个
+        # 应用排名但不进行过滤，保留所有数据
         ranked_df = (
             batch_df
             .withColumn("rank", expr("rank() OVER (PARTITION BY window ORDER BY total_score_change DESC)"))
-            .filter(col("rank") <= config.TOP_N)
             .select(
                 col("window.start").alias("window_start"),
                 col("window.end").alias("window_end"),
@@ -131,7 +149,7 @@ def process_stream(spark: SparkSession):  # 定义处理数据流的主函数，
         # 输出一些信息作为日志
         top_wallpapers = ranked_df.collect()
         if top_wallpapers:
-            logger.info(f"本批次发现 {len(top_wallpapers)} 个热门壁纸")
+            logger.info(f"本批次发现 {len(top_wallpapers)} 个壁纸")
             
         # 更新Redis
         update_trending_wallpapers(ranked_df)

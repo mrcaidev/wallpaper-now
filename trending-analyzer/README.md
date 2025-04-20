@@ -16,8 +16,6 @@ This service analyzes real-time user interaction data from Kafka using Spark Str
 - Kafka Cluster
 - Redis Server
 
-
-
 See `.env.example` for configurable parameters like Kafka details, Spark settings (window duration, slide duration, top N), and Redis connection info.
 
 ## Running the API server
@@ -35,7 +33,7 @@ Get a list of currently trending wallpapers sorted by popularity.
 - **URL**: `/api/v1/wallpapers/trending`
 - **Method**: GET
 - **Query Parameters**:
-  - `limit` (optional): Number of results to return (default: 10, max: 100)
+  - `limit` (optional): Number of results to return (default: 10, max: 100)，enter 0 to get all results
   - `offset` (optional): Number of results to skip (default: 0)
 
 #### Response Format
