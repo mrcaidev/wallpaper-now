@@ -1,0 +1,4 @@
+pyspark>=3.4.0 # 请使用与你的 Spark 集群兼容的版本
+kafka-python>=2.0.0
+redis>=4.0.0
+python-dotenv>=0.20.0 # 用于加载 .env 文件 
