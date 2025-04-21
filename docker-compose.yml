@@ -153,6 +153,29 @@ services:
       - kafka-3
     restart: always
 
+  recommend-postgres:
+    build: ./pgvector-docker
+    environment:
+      - POSTGRES_USER=recommend
+      - POSTGRES_PASSWORD=3f9876c5d8d29c1c490cdaa119a7d5e3
+      - POSTGRES_DB=recommend
+    restart: always
+
+  recommend:
+    build: ./recommend
+    ports:
+      - 7071:7071
+    environment:
+      - JWT_SECRET=nus-iss-software-engineering-big-data
+      - POSTGRES_URL=postgresql://recommend:3f9876c5d8d29c1c490cdaa119a7d5e3@recommend-postgres:5432/recommend
+      - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - recommend-postgres
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    restart: always
+
 volumes:
   user-manager-postgres-data:
   wallpaper-manager-postgres-data:
