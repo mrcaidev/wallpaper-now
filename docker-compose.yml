@@ -89,6 +89,19 @@ services:
       - interaction-collector-postgres-data:/var/lib/postgresql/data
     restart: always
 
+  api-compositor:
+    build: ./api-compositor
+    environment:
+      - WALLPAPER_MANAGER_BASE_URL=http://wallpaper-manager:3000
+      - INTERACTION_CONTROLLER_BASE_URL=http://interaction-collector:3000
+      - RECOMMENDER_BASE_URL=http://recommender:7071
+      - TRENDING_TRACKER_BASE_URL=http://trending-tracker:8080/api/v1/wallpapers
+    depends_on:
+      - wallpaper-manager
+      - interaction-collector
+      - recommender
+      - trending-tracker
+
   kafka-1:
     image: apache/kafka-native
     environment:
