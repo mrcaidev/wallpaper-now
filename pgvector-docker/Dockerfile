@@ -1,5 +1,5 @@
 # 使用官方PostgreSQL镜像
-FROM postgres:15
+FROM postgres
 
 # 安装编译pgvector所需的依赖
 RUN apt-get update && \
