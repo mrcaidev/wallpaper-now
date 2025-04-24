@@ -1,4 +1,4 @@
-import { useTrendingQuery } from "@/apis/wallpaper.ts";
+import { useTrendingQuery } from "@/api/wallpaper.ts";
 import { Skeleton } from "./ui/skeleton.tsx";
 import { WallpaperCard } from "./wallpaper-card.tsx";
 

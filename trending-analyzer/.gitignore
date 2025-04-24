@@ -1,0 +1,55 @@
+# Spark checkpoint目录
+checkpoint/
+**/checkpoint/
+*/checkpoint/*
+
+# Python相关
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
+venv/
+ENV/
+.env
+
+# IDE相关
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# 日志文件
+*.log
+logs/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Kafka数据
+kafka-logs/
+
+# Redis数据
+dump.rdb
+appendonly.aof
+
+# Docker相关
+.docker/

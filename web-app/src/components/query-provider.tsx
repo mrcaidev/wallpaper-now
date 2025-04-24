@@ -1,7 +1,8 @@
-import { RequestError } from "@/apis/request.ts";
+import { RequestError } from "@/api/request";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import type { PropsWithChildren } from "react";
+import { toast } from "sonner";
 
 const client = new QueryClient({
   defaultOptions: {
@@ -11,6 +12,11 @@ const client = new QueryClient({
           return false;
         }
         return failureCount < 3;
+      },
+    },
+    mutations: {
+      onError: (error) => {
+        toast.error(error.message);
       },
     },
   },
