@@ -15,6 +15,7 @@ COPY . .
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 CMD ["python", "processor_entry.py"]
 =======
 CMD ["python", "processor_entry.py"]
@@ -25,3 +26,6 @@ CMD ["python", "processor_entry.py"]
 =======
 CMD ["python", "processor_entry.py"]
 >>>>>>> bee308a (Feat: Set up deployment)
+=======
+CMD ["python", "processor_entry.py"]
+>>>>>>> 3fc4810 (Feat: Add Dockerfile)
