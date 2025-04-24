@@ -1,5 +1,5 @@
 from app.postgreDAO.userProfiles import insert_default_user_profile, get_user_profile, update_user_preference
-from app.postgreDAO.wallpaperEmbedding import create_wallpaper, search_similar, get_wallpaper
+from app.postgreDAO.wallpaperEmbedding import create_wallpaper, search_similar, get_wallpaper,get_random_wallpaper
 import logging
 import uuid
 from fastapi import HTTPException, status
@@ -35,6 +35,15 @@ async def get_wallpaper_recommendations(user_id):
     except Exception as e:
         print(e)
         logger.error("error")
+
+async def get_random_wallpaper_recommend(limit):
+    try:
+        return await get_random_wallpaper(limit)
+    except Exception as e:
+        print(e)
+        logger.error("error")
+
+
 
 async def update_user_profile(user_id, wallpaper_id, weight):
     validate_uuid4(user_id)
