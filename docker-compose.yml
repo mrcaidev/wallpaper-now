@@ -266,6 +266,7 @@ services:
       - ./wallpaper-processor/models:/app/models
     depends_on:
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       - recommend-postgres
 
@@ -319,6 +320,8 @@ services:
       - ./wallpaper-processor/models:/app/models
     depends_on:
 >>>>>>> 304ca81 (Feat: Set up deployment)
+=======
+>>>>>>> bee308a (Feat: Set up deployment)
       - kafka-1
       - kafka-2
       - kafka-3
