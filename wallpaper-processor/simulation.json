@@ -1,0 +1,22 @@
+{
+    "wallpapers": [
+      {
+        "id": "03c7d4d2-cc77-4882-9d76-ad32fbfa23bf",
+        "description": "A wonderful wallpaper",
+        "width": 3840,
+        "height": 2160,
+        "smallUrl": "https://example.com/1/small.jpg",
+        "regularUrl": "https://example.com/1/regular.jpg",
+        "rawUrl": "https://images.pexels.com/photos/31658327/pexels-photo-31658327.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+      },
+      {
+        "id": "72dda60f-29f2-4796-8ac9-5c600a6b5d41",
+        "description": "Another nice wallpaper",
+        "width": 1920,
+        "height": 1080,
+        "smallUrl": "https://example.com/2/small.jpg",
+        "regularUrl": "https://example.com/2/regular.jpg",
+        "rawUrl": "https://images.pexels.com/photos/31658327/pexels-photo-31658327.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+      }
+    ]
+  }
