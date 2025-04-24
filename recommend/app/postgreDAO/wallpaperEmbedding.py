@@ -98,3 +98,20 @@ def search_similar(user_profiles_norm_vector, limit=10):
             )
         )
             return cursor.fetchall()
+
+async def get_random_wallpaper(limit=10):
+    with get_db_cursor(commit=True) as cursor:
+        cursor.execute(
+            """
+            SELECT 
+                wallpaper_id
+            FROM wallpaper_embedding
+            ORDER BY random()
+            LIMIT %s
+            """,
+                    (
+                    limit,
+                )
+        )
+        return cursor.fetchall()
+
