@@ -7,7 +7,6 @@ RUN bun run build
 
 FROM oven/bun:alpine
 WORKDIR /app
-RUN apk add --no-cache curl
 COPY --from=build /code/dist .
 ENV NODE_ENV=production
 CMD ["bun", "run", "index.js"]

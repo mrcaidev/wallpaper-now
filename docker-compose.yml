@@ -89,6 +89,69 @@ services:
       - interaction-collector-postgres-data:/var/lib/postgresql/data
     restart: always
 
+  trending-tracker:
+    build: ./trending-analyzer
+    environment:
+      - REDIS_HOST=trending-tracker-redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_TRENDING_KEY=trending-wallpapers
+      - SPARK_MASTER=local[*]
+      - SPARK_APP_NAME=TrendingWallpaperAnalyzer
+      - WINDOW_DURATION_SECONDS=3600
+      - SLIDE_DURATION_SECONDS=600
+      - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+      - KAFKA_TOPIC=interaction_collected
+      - KAFKA_GROUP_ID=trending-analyzer-group
+    depends_on:
+      - trending-tracker-redis
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    restart: always
+
+  trending-tracker-redis:
+    image: redis
+    command: redis-server --appendonly yes
+    volumes:
+      - trending-tracker-redis-data:/data
+    restart: always
+
+  recommender:
+    build: ./recommend
+    environment:
+      - POSTGRES_URL=postgresql://recommender:7d6a7b115bb57151237c633354a74e58@recommender-postgres:5432/recommender
+      - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - recommender-postgres
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    restart: always
+
+  recommender-postgres:
+    build: ./pgvector-docker
+    environment:
+      - POSTGRES_USER=recommender
+      - POSTGRES_PASSWORD=7d6a7b115bb57151237c633354a74e58
+      - POSTGRES_DB=recommender
+    volumes:
+      - recommender-postgres-data:/var/lib/postgresql/data
+    restart: always
+
+  api-compositor:
+    build: ./api-compositor
+    environment:
+      - WALLPAPER_MANAGER_BASE_URL=http://wallpaper-manager:3000
+      - INTERACTION_CONTROLLER_BASE_URL=http://interaction-collector:3000
+      - RECOMMENDER_BASE_URL=http://recommender:7071
+      - TRENDING_TRACKER_BASE_URL=http://trending-tracker:8080/api/v1/wallpapers
+    depends_on:
+      - wallpaper-manager
+      - interaction-collector
+      - recommender
+      - trending-tracker
+
   kafka-1:
     image: apache/kafka-native
     environment:
@@ -153,25 +216,6 @@ services:
       - kafka-3
     restart: always
 
-  recommend-postgres:
-    build: ./pgvector-docker
-    environment:
-      - POSTGRES_USER=recommend
-      - POSTGRES_PASSWORD=3f9876c5d8d29c1c490cdaa119a7d5e3
-      - POSTGRES_DB=recommend
-    restart: always
-
-  recommend:
-    build: ./recommend
-    ports:
-      - 7071:7071
-    environment:
-      - JWT_SECRET=nus-iss-software-engineering-big-data
-      - POSTGRES_URL=postgresql://recommend:3f9876c5d8d29c1c490cdaa119a7d5e3@recommend-postgres:5432/recommend
-      - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
-    depends_on:
-      - recommend-postgres
-
   wallpaper-vectorizer-1:
     build: ./wallpaper-processor
     container_name: wallpaper-vectorizer-1
@@ -230,6 +274,8 @@ volumes:
   user-manager-postgres-data:
   wallpaper-manager-postgres-data:
   interaction-collector-postgres-data:
+  recommender-postgres-data:
+  trending-tracker-redis-data:
   kafka-1-data:
   kafka-2-data:
   kafka-3-data:
