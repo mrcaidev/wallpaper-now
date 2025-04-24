@@ -12,4 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 设置默认启动命令：运行你的主入口 processor_entry.py
+<<<<<<< HEAD
 CMD ["python", "processor_entry.py"]
+=======
+CMD ["python", "processor_entry.py"]
+>>>>>>> 304ca81 (Feat: Set up deployment)
