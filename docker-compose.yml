@@ -265,6 +265,25 @@ services:
     volumes:
       - ./wallpaper-processor/models:/app/models
     depends_on:
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+      - recommend-postgres
+
+  wallpaper-vectorizer:
+    build: ./wallpaper-processor
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+      - KAFKA_GROUP_ID=vectorizer-group
+      - WALLPAPER_SCRAPED_TOPIC=WallpaperScraped
+      - WALLPAPER_VECTORIZED_TOPIC=WallpaperVectorized
+      - MODEL_PATH=/app/models/bge_model
+    volumes:
+      - ./wallpaper-processor/models:/app/models
+    depends_on:
+>>>>>>> 304ca81 (Feat: Set up deployment)
+=======
+>>>>>>> bee308a (Feat: Set up deployment)
       - kafka-1
       - kafka-2
       - kafka-3
