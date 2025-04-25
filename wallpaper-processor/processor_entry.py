@@ -4,10 +4,11 @@ from config import WALLPAPER_VECTORIZED_TOPIC, KAFKA_GROUP_ID, WALLPAPER_SCRAPED
 from processor_logic import process_wallpaper
 import os
 from app.utils.logger import get_logger
+import socket
 
 logger = get_logger(__name__)
 
-CONSUMER_NAME = os.getenv("CONSUMER_NAME", "unnamed-consumer")
+CONSUMER_NAME = os.getenv("CONSUMER_NAME") or socket.gethostname()
 
 producer = init_producer()
 
