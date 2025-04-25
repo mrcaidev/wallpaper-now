@@ -12,20 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 设置默认启动命令：运行你的主入口 processor_entry.py
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 CMD ["python", "processor_entry.py"]
-=======
-CMD ["python", "processor_entry.py"]
->>>>>>> 304ca81 (Feat: Set up deployment)
-=======
-CMD ["python", "processor_entry.py"]
->>>>>>> 43fb737 (Feat: Add Dockerfile)
-=======
-CMD ["python", "processor_entry.py"]
->>>>>>> bee308a (Feat: Set up deployment)
-=======
-CMD ["python", "processor_entry.py"]
->>>>>>> 3fc4810 (Feat: Add Dockerfile)
