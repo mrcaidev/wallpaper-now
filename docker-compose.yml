@@ -270,47 +270,9 @@ services:
 =======
       - recommend-postgres
 
-  wallpaper-vectorizer-1:
+  wallpaper-vectorizer:
     build: ./wallpaper-processor
-    container_name: wallpaper-vectorizer-1
     environment:
-      - CONSUMER_NAME=consumer-1
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
-      - KAFKA_GROUP_ID=vectorizer-group
-      - WALLPAPER_SCRAPED_TOPIC=WallpaperScraped
-      - WALLPAPER_VECTORIZED_TOPIC=WallpaperVectorized
-      - MODEL_PATH=/app/models/bge_model
-    volumes:
-      - ./wallpaper-processor/models:/app/models
-    depends_on:
-      - kafka-1
-      - kafka-2
-      - kafka-3
-    restart: always
-
-  wallpaper-vectorizer-2:
-    build: ./wallpaper-processor
-    container_name: wallpaper-vectorizer-2
-    environment:
-      - CONSUMER_NAME=consumer-2
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
-      - KAFKA_GROUP_ID=vectorizer-group
-      - WALLPAPER_SCRAPED_TOPIC=WallpaperScraped
-      - WALLPAPER_VECTORIZED_TOPIC=WallpaperVectorized
-      - MODEL_PATH=/app/models/bge_model
-    volumes:
-      - ./wallpaper-processor/models:/app/models
-    depends_on:
-      - kafka-1
-      - kafka-2
-      - kafka-3
-    restart: always
-
-  wallpaper-vectorizer-3:
-    build: ./wallpaper-processor
-    container_name: wallpaper-vectorizer-3
-    environment:
-      - CONSUMER_NAME=consumer-3
       - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
       - KAFKA_GROUP_ID=vectorizer-group
       - WALLPAPER_SCRAPED_TOPIC=WallpaperScraped
