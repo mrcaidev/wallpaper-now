@@ -25,7 +25,7 @@ KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "InteractionCollected")
 
 # 模拟数据配置
 DEFAULT_TOTAL_USERS = 1000      # 模拟用户数量
-DEFAULT_TOTAL_WALLPAPERS = 500  # 模拟壁纸数量
+FIXED_TOTAL_WALLPAPERS = 10     # 固定壁纸数量
 DEFAULT_THREADS = 5             # 生产者线程数
 DEFAULT_BATCH_SIZE = 100        # 每批次消息数
 DEFAULT_INTERVAL = 0.1          # 每批次间隔(秒)
@@ -34,15 +34,11 @@ DEFAULT_INTERVAL = 0.1          # 每批次间隔(秒)
 INTERACTION_WEIGHTS = [
     (1.0, 0.45),    # 浏览，权重1.0，45%概率
     (2.0, 0.25),    # 点赞，权重2.0，25%概率
-    (5.0, 0.15),    # 下载，权重5.0，15%概率
+    (5.0, 0.05),    # 下载，权重5.0，15%概率
     (7.0, 0.08),    # 收藏，权重7.0，8%概率
     (10.0, 0.05),   # 设为背景，权重10.0，5%概率
-    (-0.5, 0.02)    # 取消点赞/收藏，负权重-0.5，2%概率
+    (-100, 0.2)    # 取消点赞/收藏，负权重-0.5，2%概率
 ]
-
-# 热门壁纸列表 - 这些壁纸会更频繁地被互动
-HOT_WALLPAPERS_PERCENTAGE = 0.05  # 热门壁纸比例
-HOT_WALLPAPER_FACTOR = 5         # 热门壁纸被选中的几率提升倍数
 
 # 活跃用户列表 - 这些用户会更频繁地产生互动
 ACTIVE_USERS_PERCENTAGE = 0.1    # 活跃用户比例
@@ -54,14 +50,14 @@ class KafkaStubGenerator:
     def __init__(
         self,
         total_users: int = DEFAULT_TOTAL_USERS,
-        total_wallpapers: int = DEFAULT_TOTAL_WALLPAPERS,
         threads: int = DEFAULT_THREADS,
         batch_size: int = DEFAULT_BATCH_SIZE,
         interval: float = DEFAULT_INTERVAL
     ):
         """初始化生成器配置"""
         self.total_users = total_users
-        self.total_wallpapers = total_wallpapers
+        # 固定壁纸数量
+        self.total_wallpapers = FIXED_TOTAL_WALLPAPERS
         self.threads = threads
         self.batch_size = batch_size
         self.interval = interval
@@ -69,16 +65,17 @@ class KafkaStubGenerator:
         # 生成模拟用户ID列表
         self.user_ids = [f"user-{str(uuid.uuid4())[:8]}" for _ in range(total_users)]
         
-        # 生成模拟壁纸ID列表 - 使用UUID格式以匹配wallpaper-manager
-        self.wallpaper_ids = [str(uuid.uuid4()) for _ in range(total_wallpapers)]
-        
-        # 标记热门壁纸
-        hot_count = int(total_wallpapers * HOT_WALLPAPERS_PERCENTAGE)
-        self.hot_wallpapers = set(random.sample(self.wallpaper_ids, hot_count))
+        # 生成固定的10个壁纸ID列表 - 确保每次运行都相同
+        # 使用确定性种子或预生成列表，这里简单生成10个
+        # 为了可复现性，可以考虑预定义这10个ID
+        random.seed(42) # 使用固定种子保证每次生成的10个ID相同
+        self.wallpaper_ids = [str(uuid.UUID(int=random.getrandbits(128))) for _ in range(self.total_wallpapers)]
+        random.seed() # 恢复随机种子
         
         # 标记活跃用户
         active_count = int(total_users * ACTIVE_USERS_PERCENTAGE)
-        self.active_users = set(random.sample(self.user_ids, active_count))
+        # 从固定用户列表中采样
+        self.active_users = set(random.sample(self.user_ids, min(active_count, len(self.user_ids))))
         
         # 统计数据
         self.message_count = 0
@@ -101,7 +98,7 @@ class KafkaStubGenerator:
         print(f"- Kafka Brokers: {KAFKA_BROKERS}")
         print(f"- Kafka Topic: {KAFKA_TOPIC}")
         print(f"- 模拟用户数: {total_users} (活跃用户: {active_count})")
-        print(f"- 模拟壁纸数: {total_wallpapers} (热门壁纸: {hot_count})")
+        print(f"- 模拟壁纸数: {self.total_wallpapers} (固定10个)")
         print(f"- 生产者线程数: {threads}")
         print(f"- 每批次消息数: {batch_size}")
         print(f"- 批次间隔: {interval} 秒")
@@ -134,13 +131,17 @@ class KafkaStubGenerator:
         if random.random() < 0.7:  # 70%的概率选择活跃用户
             if self.active_users:
                 return random.choice(list(self.active_users))
+        # 如果没有活跃用户或未选中，从所有用户中随机选择
+        if not self.user_ids:
+             return "default_user" # 防止 user_ids 为空
         return random.choice(self.user_ids)
     
     def _select_wallpaper_id(self) -> str:
-        """智能选择一个壁纸ID，有更高概率选择热门壁纸"""
-        if random.random() < 0.8:  # 80%的概率选择热门壁纸
-            if self.hot_wallpapers:
-                return random.choice(list(self.hot_wallpapers))
+        """直接从固定的10个壁纸ID中随机选择一个"""
+        # 移除 hot_wallpapers 逻辑
+        if not self.wallpaper_ids:
+            # 理论上不应发生，因为我们在 __init__ 中生成了
+            return str(uuid.uuid4()) # 返回一个随机ID作为后备
         return random.choice(self.wallpaper_ids)
     
     def _select_weight(self) -> float:
@@ -155,7 +156,8 @@ class KafkaStubGenerator:
                 return weight
                 
         # 如果执行到这里(不应该)，使用最后一个权重
-        return INTERACTION_WEIGHTS[-1][0]
+        # 确保 INTERACTION_WEIGHTS 不为空
+        return INTERACTION_WEIGHTS[-1][0] if INTERACTION_WEIGHTS else 0.0
     
     def _generate_message(self) -> Dict:
         """生成一条模拟消息"""
@@ -203,8 +205,8 @@ class KafkaStubGenerator:
             # 每批次后等待短暂时间，避免过载
             time.sleep(self.interval)
             
-            # 定期记录统计信息
-            if local_count >= 1000:
+            # 定期记录统计信息 (检查 self._lock 是否存在)
+            if local_count >= 1000 and hasattr(self, '_lock'):
                 with self._lock:
                     self.message_count += local_count
                 local_count = 0
@@ -213,11 +215,12 @@ class KafkaStubGenerator:
                 if self.start_time:
                     elapsed = time.time() - self.start_time
                     rate = self.message_count / elapsed if elapsed > 0 else 0
-                    print(f"线程 {thread_id} - 已发送 {local_count} 条消息，总计 {self.message_count} 条，速率 {rate:.2f} 条/秒")
+                    print(f"线程 {thread_id} - 已发送 {local_count} 条消息(批次)，总计 {self.message_count} 条，速率 {rate:.2f} 条/秒")
         
-        # 线程结束前汇总剩余统计数据
-        with self._lock:
-            self.message_count += local_count
+        # 线程结束前汇总剩余统计数据 (检查 self._lock 是否存在)
+        if hasattr(self, '_lock'):
+            with self._lock:
+                self.message_count += local_count
     
     def start(self, duration: Optional[int] = None):
         """启动模拟生成器"""
@@ -262,36 +265,41 @@ class KafkaStubGenerator:
         
         # 等待生产者完成任何挂起的发送
         print("等待生产者完成发送...")
-        self.producer.flush()
-        
-        # 关闭生产者
-        self.producer.close()
+        if self.producer: # 检查 producer 是否已创建
+            try:
+                self.producer.flush()
+                # 关闭生产者
+                self.producer.close()
+            except Exception as e:
+                print(f"关闭 Kafka Producer 时出错: {e}")
         
         # 显示最终统计信息
-        elapsed = time.time() - self.start_time
-        rate = self.message_count / elapsed if elapsed > 0 else 0
-        
-        print("\n============ 运行统计 ============")
-        print(f"总运行时间: {elapsed:.2f} 秒")
-        print(f"总发送消息: {self.message_count} 条")
-        print(f"平均发送速率: {rate:.2f} 条/秒")
-        print("==================================")
+        if self.start_time: # 确保 start_time 已设置
+            elapsed = time.time() - self.start_time
+            rate = self.message_count / elapsed if elapsed > 0 else 0
+            
+            print("\n============ 运行统计 ============")
+            print(f"总运行时间: {elapsed:.2f} 秒")
+            print(f"总发送消息: {self.message_count} 条")
+            print(f"平均发送速率: {rate:.2f} 条/秒")
+            print("==================================")
 
 def main():
     """主函数，解析命令行参数并启动生成器"""
     parser = argparse.ArgumentParser(description="Kafka 模拟数据生成器")
     parser.add_argument("--users", type=int, default=DEFAULT_TOTAL_USERS, help=f"模拟用户数量 (默认: {DEFAULT_TOTAL_USERS})")
-    parser.add_argument("--wallpapers", type=int, default=DEFAULT_TOTAL_WALLPAPERS, help=f"模拟壁纸数量 (默认: {DEFAULT_TOTAL_WALLPAPERS})")
+    # 移除 --wallpapers 参数
+    # parser.add_argument("--wallpapers", type=int, default=DEFAULT_TOTAL_WALLPAPERS, help=f"模拟壁纸数量 (默认: {DEFAULT_TOTAL_WALLPAPERS})")
     parser.add_argument("--threads", type=int, default=DEFAULT_THREADS, help=f"生产者线程数 (默认: {DEFAULT_THREADS})")
     parser.add_argument("--batch", type=int, default=DEFAULT_BATCH_SIZE, help=f"每批次消息数 (默认: {DEFAULT_BATCH_SIZE})")
     parser.add_argument("--interval", type=float, default=DEFAULT_INTERVAL, help=f"批次间隔秒数 (默认: {DEFAULT_INTERVAL})")
     parser.add_argument("--duration", type=int, help="运行持续时间(秒)，不指定则无限运行")
     args = parser.parse_args()
     
-    # 创建并启动生成器
+    # 创建并启动生成器 (不再传入 wallpapers)
     generator = KafkaStubGenerator(
         total_users=args.users,
-        total_wallpapers=args.wallpapers,
+        # total_wallpapers=args.wallpapers, # 移除
         threads=args.threads,
         batch_size=args.batch,
         interval=args.interval
