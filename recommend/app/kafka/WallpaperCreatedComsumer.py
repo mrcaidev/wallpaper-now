@@ -18,9 +18,9 @@ consumer_task = None
 
 # 处理用户创建消息的函数
 async def process_wallpaper_scraped_message(wallpaper_data):
-    logger.info(f"processing new wallpaper: {wallpaper_data}")
-    logger.info(f"wallpaper ID: {wallpaper_data['wallpaper_id']}")
-    await create_wallpaper_embedding(wallpaper_data['wallpaper_id'], wallpaper_data['embedding'])
+    for wallpaper in wallpaper_data:
+        logger.info(f"wallpaper ID: {wallpaper['id']}")
+        await create_wallpaper_embedding(wallpaper['id'], wallpaper['embedding'])
 
 # Kafka消费者协程
 async def consume():

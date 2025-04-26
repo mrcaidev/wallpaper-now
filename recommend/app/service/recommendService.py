@@ -21,8 +21,6 @@ async def create_user_profile(user_id):
     insert_default_user_profile(user_id)
 
 async def create_wallpaper_embedding(wallpaper_id, wallpaper_embedding):
-    logger.info(f"壁纸ID: {wallpaper_id}")
-    logger.info(f"壁纸向量: {wallpaper_embedding}")
     create_wallpaper(wallpaper_id, wallpaper_embedding)
 
 async def get_wallpaper_recommendations(user_id):
