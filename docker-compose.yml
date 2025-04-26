@@ -9,7 +9,11 @@ services:
       - web-app
       - user-manager
       - wallpaper-manager
+      - wallpaper-vectorizer
       - interaction-collector
+      - trending-tracker
+      - recommender
+    restart: always
 
   web-app:
     build:
@@ -64,6 +68,22 @@ services:
     volumes:
       - ./wallpaper-manager/database:/docker-entrypoint-initdb.d
       - wallpaper-manager-postgres-data:/var/lib/postgresql/data
+    restart: always
+
+  wallpaper-vectorizer:
+    build: ./wallpaper-processor
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+      - KAFKA_GROUP_ID=vectorizer-group
+      - WALLPAPER_SCRAPED_TOPIC=WallpaperScraped
+      - WALLPAPER_VECTORIZED_TOPIC=WallpaperVectorized
+      - MODEL_PATH=/app/models/bge_model
+    volumes:
+      - ./wallpaper-processor/models:/app/models
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
     restart: always
 
   interaction-collector:
@@ -210,22 +230,6 @@ services:
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
-    depends_on:
-      - kafka-1
-      - kafka-2
-      - kafka-3
-    restart: always
-
-  wallpaper-vectorizer:
-    build: ./wallpaper-processor
-    environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
-      - KAFKA_GROUP_ID=vectorizer-group
-      - WALLPAPER_SCRAPED_TOPIC=WallpaperScraped
-      - WALLPAPER_VECTORIZED_TOPIC=WallpaperVectorized
-      - MODEL_PATH=/app/models/bge_model
-    volumes:
-      - ./wallpaper-processor/models:/app/models
     depends_on:
       - kafka-1
       - kafka-2
