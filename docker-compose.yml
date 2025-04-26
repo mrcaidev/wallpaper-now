@@ -145,8 +145,8 @@ services:
       - POSTGRES_USER=recommender
       - POSTGRES_PASSWORD=7d6a7b115bb57151237c633354a74e58
       - POSTGRES_DB=recommender
-      - POSTGRES_HOSTS=recommender-postgres
-      - POSTGRES_PORTS = 5432
+      - POSTGRES_HOST=recommender-postgres
+      - POSTGRES_PORT=5432
     depends_on:
       - recommender-postgres
       - kafka-1

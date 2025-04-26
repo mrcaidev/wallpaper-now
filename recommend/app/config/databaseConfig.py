@@ -8,6 +8,6 @@ POSTGRESQL_CONFIG = {
     "user": os.getenv("POSTGRES_USER", "recommender"),
     "password": os.getenv("POSTGRES_PASSWORD"),
     "host": os.getenv("POSTGRES_HOST", "recommender-postgres"),
-    "port": os.getenv("POSTGRES_PORTS", "5432")
+    "port": os.getenv("POSTGRES_PORT", "5432")
 }
 vector_dimensions = 512
