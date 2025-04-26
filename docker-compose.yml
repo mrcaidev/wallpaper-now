@@ -166,7 +166,7 @@ services:
       - WALLPAPER_MANAGER_BASE_URL=http://wallpaper-manager:3000
       - INTERACTION_CONTROLLER_BASE_URL=http://interaction-collector:3000
       - RECOMMENDER_BASE_URL=http://recommender:7071
-      - TRENDING_TRACKER_BASE_URL=http://trending-tracker:8080/api/v1/wallpapers
+      - TRENDING_TRACKER_BASE_URL=http://trending-tracker:8000/api/v1/wallpapers
     depends_on:
       - wallpaper-manager
       - interaction-collector
