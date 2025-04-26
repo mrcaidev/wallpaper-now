@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # Kafka配置
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BROKERS")
-KAFKA_TOPIC = "WallpaperScraped"
+KAFKA_TOPIC = "WallpaperVectorized"
 
 # 全局变量存储消费者实例和消费任务
 consumer_task = None
