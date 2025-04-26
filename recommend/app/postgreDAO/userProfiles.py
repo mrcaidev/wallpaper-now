@@ -75,7 +75,6 @@ def generate_user_default_embedding():
 def calculate_new_vector(user_embedding, wallpaper_embedding, weight):
     result_vector = np.multiply(1-weight, ast.literal_eval(user_embedding)) + np.multiply(weight, ast.literal_eval(wallpaper_embedding))
     result_vec = result_vector / normalize_vector(ast.literal_eval(user_embedding))
-    logger.info(result_vec)
     return result_vec
 
 def insert_default_user_profile(user_id):
@@ -158,8 +157,6 @@ async def update_user_preference(
     wallpaper_embedding,
     weight: float
 ) -> None:
-    if not (0.0 <= weight <= 1.0):
-        raise ValueError("Weights must be between 0 and 1")
     new_user_embedding = calculate_new_vector(user_embedding, wallpaper_embedding, weight)
     logger.info("type: "+type(new_user_embedding).__name__)
     try:       

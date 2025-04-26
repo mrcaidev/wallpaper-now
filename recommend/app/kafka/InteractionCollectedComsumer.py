@@ -19,7 +19,7 @@ consumer_task = None
 # 处理用户创建消息的函数
 async def process_interaction_collected_message(user_data):
     logger.info(f"processing interaction: {user_data}")
-    await update_user_profile(user_data['user_id'], user_data['wallpaper_id'], user_data['weight'])
+    await update_user_profile(user_data['userId'], user_data['wallpaperId'], user_data['weight'])
 
 # Kafka消费者协程
 async def consume():

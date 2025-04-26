@@ -48,11 +48,9 @@ async def update_user_profile(user_id, wallpaper_id, weight):
     validate_uuid4(wallpaper_id)
 
     user_profile = await get_user_profile(user_id)
-    logger.info(type(user_profile["preference_vector"]).__name__)
     wallpaper = await get_wallpaper(wallpaper_id)
     await update_user_preference(user_id, user_profile["preference_vector"], wallpaper["embedding"], weight)
     user_profile_after = await get_user_profile(user_id)
-    logger.info("after update: "+ user_profile_after["preference_vector"])   
     
 
     
