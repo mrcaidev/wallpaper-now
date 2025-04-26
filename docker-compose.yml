@@ -13,6 +13,7 @@ services:
       - interaction-collector
       - trending-tracker
       - recommender
+      - api-compositor
     restart: always
 
   web-app:
