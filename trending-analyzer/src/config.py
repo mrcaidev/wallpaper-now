@@ -7,7 +7,7 @@ load_dotenv()  # 执行加载环境变量的操作
 # Kafka 配置 - 使用 docker-compose 中的 brokers 地址
 KAFKA_BROKERS = os.getenv('KAFKA_BROKERS', 'kafka-1:9092,kafka-2:9092,kafka-3:9092') # 获取 Kafka brokers 地址，提供默认值
 # 默认 topic 基于 interaction-collector 可能的事件名称
-KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'interaction_collected') # 获取 Kafka topic 名称，提供默认值
+KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'InteractionCollected') # 获取 Kafka topic 名称，提供默认值
 KAFKA_GROUP_ID = os.getenv('KAFKA_GROUP_ID', 'trending-analyzer-group') # 获取 Kafka 消费者组 ID，提供默认值
 
 # Spark 配置
