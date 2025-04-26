@@ -122,7 +122,7 @@ services:
       - WINDOW_DURATION_SECONDS=3600
       - SLIDE_DURATION_SECONDS=600
       - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
-      - KAFKA_TOPIC=interaction_collected
+      - KAFKA_TOPIC=InteractionCollected
       - KAFKA_GROUP_ID=trending-analyzer-group
     depends_on:
       - trending-tracker-redis
