@@ -155,12 +155,13 @@ services:
     restart: always
 
   recommender-postgres:
-    build: ./pgvector-docker
+    image: pgvector/pgvector:pg17
     environment:
       - POSTGRES_USER=recommender
       - POSTGRES_PASSWORD=7d6a7b115bb57151237c633354a74e58
       - POSTGRES_DB=recommender
     volumes:
+      - ./recommend/database:/docker-entrypoint-initdb.d
       - recommender-postgres-data:/var/lib/postgresql/data
     restart: always
 
