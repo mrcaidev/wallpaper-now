@@ -1,8 +1,13 @@
+import os  # 导入操作系统接口模块
+from dotenv import load_dotenv
+
+load_dotenv()
+
 POSTGRESQL_CONFIG = {
-    "dbname": "recommend",
-    "user": "recommend",
-    "password": "3f9876c5d8d29c1c490cdaa119a7d5e3",
-    "host": "recommend-postgres",
-    "port": "5432"
+    "dbname": os.getenv("POSTGRES_DB", "recommender"),
+    "user": os.getenv("POSTGRES_USER", "recommender"),
+    "password": os.getenv("POSTGRES_PASSWORD"),
+    "host": os.getenv("POSTGRES_HOST", "recommender-postgres"),
+    "port": os.getenv("POSTGRES_PORT", "5432")
 }
 vector_dimensions = 512

@@ -22,6 +22,8 @@ RUN pip install pyspark
 RUN pip install aiokafka
 
 RUN pip install numpy
+
+RUN pip install dotenv
 # 
 COPY ./app /code/app
 

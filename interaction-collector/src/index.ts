@@ -16,9 +16,9 @@ app.get("/", (c) => {
 });
 
 const WEIGHTS = {
-  like: 3,
-  dislike: -3,
-  download: 5,
+  like: 0.2,
+  dislike: -0.4,
+  download: 0.4,
 } as const;
 
 app.post(

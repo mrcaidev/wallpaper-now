@@ -1,7 +1,7 @@
 import { sql } from "bun";
 import { type Context, Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { jwt, sign } from "hono/jwt";
+import { sign, verify } from "hono/jwt";
 import { logger } from "hono/logger";
 import { validator } from "hono/validator";
 import { sendUserCreatedEvent } from "./kafka.ts";
@@ -20,10 +20,20 @@ app.get("/", (c) => {
   return c.text("ok");
 });
 
-app.get("/auth", jwt({ secret: Bun.env.JWT_SECRET }), async (c) => {
-  const { id } = c.get("jwtPayload");
-  c.header("X-User-Id", id);
-  return c.body(null, 204);
+app.get("/auth", async (c) => {
+  try {
+    const token = c.req.header("Authorization")?.slice(7);
+
+    if (!token) {
+      return c.body(null, 204);
+    }
+
+    const { id } = await verify(token, Bun.env.JWT_SECRET);
+    c.header("X-User-Id", id as string);
+    return c.body(null, 204);
+  } catch {
+    return c.body(null, 204);
+  }
 });
 
 app.get("/me", async (c) => {

@@ -4,6 +4,10 @@ import { sql } from "bun";
 type WallpaperInput = Omit<Wallpaper, "id"> & { deduplicationKey: string };
 
 export async function persist(inputs: WallpaperInput[]) {
+  if (inputs.length === 0) {
+    return [];
+  }
+
   const snakeCaseInputs = inputs.map((i) => ({
     description: i.description,
     width: i.width,
