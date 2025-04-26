@@ -141,8 +141,12 @@ services:
   recommender:
     build: ./recommend
     environment:
-      - POSTGRES_URL=postgresql://recommender:7d6a7b115bb57151237c633354a74e58@recommender-postgres:5432/recommender
       - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+      - POSTGRES_USER=recommender
+      - POSTGRES_PASSWORD=7d6a7b115bb57151237c633354a74e58
+      - POSTGRES_DB=recommender
+      - POSTGRES_HOSTS=recommender-postgres
+      - POSTGRES_PORTS = 5432
     depends_on:
       - recommender-postgres
       - kafka-1
