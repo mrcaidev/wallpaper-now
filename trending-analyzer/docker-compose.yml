@@ -43,7 +43,7 @@ services:
       - KAFKA_TOPIC=InteractionCollected
     volumes:
       - ./tools:/app/tools
-    command: python /app/tools/stubs/kafka_stub_generator.py --users 100 --wallpapers 50 --threads 2 --batch 50 --interval 1 --duration 1800
+    command: python /app/tools/stubs/kafka_stub_generator.py --users 100 --threads 2 --batch 50 --interval 1 --duration 1800
     networks:
       - wallpaper-network
 
