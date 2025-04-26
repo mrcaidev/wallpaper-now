@@ -155,7 +155,7 @@ services:
     restart: always
 
   recommender-postgres:
-    image: pgvector/pgvector:pg17
+    image: pgvector/pgvector:pg15
     environment:
       - POSTGRES_USER=recommender
       - POSTGRES_PASSWORD=7d6a7b115bb57151237c633354a74e58
