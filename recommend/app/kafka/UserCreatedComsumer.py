@@ -18,8 +18,8 @@ consumer_task = None
 
 # 处理用户创建消息的函数
 async def process_user_created_message(user_data):
-    logger.info(f"user ID: {user_data['user_id']}")
-    await create_user_profile(user_data['user_id'])
+    logger.info(f"user ID: {user_data['id']}")
+    await create_user_profile(user_data['id'])
 
 # Kafka消费者协程
 async def consume():
