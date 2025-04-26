@@ -76,7 +76,7 @@ services:
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
       - KAFKA_GROUP_ID=vectorizer-group
-      - WALLPAPER_SCRAPED_TOPIC=WallpaperScraped
+      - WALLPAPER_SCRAPED_TOPIC=Wallpape4315801177237397746rScraped
       - WALLPAPER_VECTORIZED_TOPIC=WallpaperVectorized
       - MODEL_PATH=/app/models/bge_model
     volumes:
