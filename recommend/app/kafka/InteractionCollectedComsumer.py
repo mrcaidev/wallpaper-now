@@ -4,6 +4,7 @@ import logging
 from aiokafka import AIOKafkaConsumer
 from app.service.recommendService import update_user_profile
 import os
+import app.retryUtil as retryUtil
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -24,18 +25,15 @@ async def process_interaction_collected_message(user_data):
 # Kafka消费者协程
 async def consume():
     """持续消费Kafka消息的协程"""
+    consumer = AIOKafkaConsumer(
+        KAFKA_TOPIC,
+        bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
+        enable_auto_commit=True,
+        value_deserializer=lambda m: json.loads(m.decode('utf-8'))
+    )
     try:
-        # 创建消费者
-        consumer = AIOKafkaConsumer(
-            KAFKA_TOPIC,
-            bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
-            enable_auto_commit=True,
-            value_deserializer=lambda m: json.loads(m.decode('utf-8'))
-        )
-        
         # 启动消费者
-        await consumer.start()
-        logger.info(f"Begin consuming Kafka Topic: {KAFKA_TOPIC}")
+        await retryUtil.retry_with_backoff(consumer.start)
         
         # 持续消费消息
         async for msg in consumer:
@@ -47,6 +45,9 @@ async def consume():
                 continue  # 显式继续下一条消息
     except Exception as e:
         logger.error(f"Kafka consume error: {e}")
+    finally:
+        await consumer.stop()
+
 
 # 启动消费者
 async def start_interaction_collected_consumer():
