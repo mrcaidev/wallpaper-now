@@ -50,7 +50,6 @@ async def update_user_profile(user_id, wallpaper_id, weight):
     user_profile = await get_user_profile(user_id)
     wallpaper = await get_wallpaper(wallpaper_id)
     await update_user_preference(user_id, user_profile["preference_vector"], wallpaper["embedding"], weight)
-    user_profile_after = await get_user_profile(user_id)
     
 
     

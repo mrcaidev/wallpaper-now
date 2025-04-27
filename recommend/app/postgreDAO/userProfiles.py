@@ -70,11 +70,11 @@ def vector_to_pg_format(vector):
 def generate_user_default_embedding():
     """生成用户默认嵌入向量"""
     # 生成一个默认向量
-    return [0.5] * dimensions
+    return [0.0001] * dimensions
 
 def calculate_new_vector(user_embedding, wallpaper_embedding, weight):
     result_vector = np.multiply(1-weight, ast.literal_eval(user_embedding)) + np.multiply(weight, ast.literal_eval(wallpaper_embedding))
-    result_vec = result_vector / normalize_vector(ast.literal_eval(user_embedding))
+    result_vec = result_vector / np.linalg.norm(ast.literal_eval(user_embedding))
     return result_vec
 
 def insert_default_user_profile(user_id):
@@ -158,7 +158,6 @@ async def update_user_preference(
     weight: float
 ) -> None:
     new_user_embedding = calculate_new_vector(user_embedding, wallpaper_embedding, weight)
-    logger.info("type: "+type(new_user_embedding).__name__)
     try:       
         with get_db_cursor(commit=True) as cursor:
             cursor.execute(
