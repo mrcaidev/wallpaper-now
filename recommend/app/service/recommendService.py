@@ -2,6 +2,7 @@ from app.postgreDAO.userProfiles import insert_default_user_profile, get_user_pr
 from app.postgreDAO.wallpaperEmbedding import create_wallpaper, search_similar, get_wallpaper,get_random_wallpaper
 import logging
 import uuid
+import random
 from fastapi import HTTPException, status
 
 # 配置日志
@@ -29,7 +30,10 @@ async def get_wallpaper_recommendations(user_id):
     try:
         result = await get_user_profile(user_id)
         list = search_similar(result["norm_preference_vector"])
-        return list
+        list_recommendations = random.sample(list, 8)
+        list_random = await get_random_wallpaper(2)
+        list_recommendations.extend(list_random)
+        return list_recommendations
     except Exception as e:
         print(e)
         logger.error("error")

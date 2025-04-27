@@ -19,6 +19,8 @@ register_uuid()
 
 dimensions = DBConfig.vector_dimensions
 
+top_k = 50
+
 @contextmanager
 def get_db_connection():
     conn = psycopg2.connect(**DB_CONFIG)
@@ -81,7 +83,7 @@ async def get_wallpaper(wallpaper_id):
         except Exception as e:
             raise e
 
-def search_similar(user_profiles_norm_vector, limit=10):
+def search_similar(user_profiles_norm_vector):
     with get_db_cursor(commit=True) as cursor:
             cursor.execute(
         """
@@ -94,9 +96,10 @@ def search_similar(user_profiles_norm_vector, limit=10):
         """,
             (
                     user_profiles_norm_vector,
-                    limit
+                    top_k
             )
         )
+
             return cursor.fetchall()
 
 async def get_random_wallpaper(limit=10):
@@ -104,7 +107,8 @@ async def get_random_wallpaper(limit=10):
         cursor.execute(
             """
             SELECT 
-                wallpaper_id
+                wallpaper_id,
+                0.0001 AS similarity
             FROM wallpaper_embedding
             ORDER BY random()
             LIMIT %s
