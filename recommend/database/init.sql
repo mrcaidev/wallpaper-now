@@ -20,3 +20,8 @@ CREATE TABLE recommend_history (
     wallpaper_id UUID NOT NULL,
     recommendAt TIMESTAMPTZ NOT NULL
 );
+
+CREATE INDEX idx_wallpaper_hnsw
+ON wallpaper_embedding
+USING hnsw (norm_embedding vector_cosine_ops)
+WITH (m = 24, ef_construction = 200);
