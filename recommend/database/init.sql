@@ -16,7 +16,6 @@ CREATE TABLE wallpaper_embedding (
 );
 
 CREATE TABLE recommend_history (
-    id UUID NOT NULL PRIMARY KEY,
     user_id UUID NOT NULL,
     wallpaper_id UUID NOT NULL,
     recommendAt TIMESTAMPTZ NOT NULL
