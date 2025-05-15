@@ -83,19 +83,27 @@ async def get_wallpaper(wallpaper_id):
         except Exception as e:
             raise e
 
-def search_similar(user_profiles_norm_vector):
+def search_similar(user_id, user_profiles_norm_vector):
     with get_db_cursor(commit=True) as cursor:
             cursor.execute(
         """
         SELECT 
             wallpaper_id,
             ROUND( ( (norm_embedding <#> %s :: vector) * -1 )::numeric, 4 ) AS similarity
-        FROM wallpaper_embedding
+        FROM wallpaper_embedding w
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM recommend_history rh
+            WHERE rh.user_id = %s 
+            AND rh.wallpaper_id = w.wallpaper_id
+            AND rh.recommendAt > NOW() - INTERVAL '5 minutes'
+        )
         ORDER BY similarity DESC
         LIMIT %s
         """,
             (
                     user_profiles_norm_vector,
+                    user_id,
                     top_k
             )
         )

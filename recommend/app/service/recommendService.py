@@ -2,6 +2,7 @@ from app.postgreDAO.userProfiles import insert_default_user_profile, get_user_pr
 from app.postgreDAO.wallpaperEmbedding import create_wallpaper, search_similar, get_wallpaper,get_random_wallpaper
 import logging
 import uuid
+from app.postgreDAO.recommendHistory import insert_history
 import random
 from fastapi import HTTPException, status
 
@@ -29,8 +30,14 @@ async def get_wallpaper_recommendations(user_id):
     logger.info("userId: "+user_id)
     try:
         result = await get_user_profile(user_id)
-        list = search_similar(result["norm_preference_vector"])
-        list_recommendations = random.sample(list, 8)
+        recommended_wallpapers = search_similar(user_id, result["norm_preference_vector"])
+        list_recommendations = random.sample(recommended_wallpapers, 8)
+        if list_recommendations and len(list_recommendations) > 0:
+            # 创建记录推荐历史的任务列表
+            for wallpaper in list_recommendations:
+                wallpaper_id = wallpaper.get("wallpaper_id")  # 假设每个壁纸对象中有wallpaper_id字段
+                if wallpaper_id:
+                    await insert_history(user_id, wallpaper_id)
         list_random = await get_random_wallpaper(2)
         list_recommendations.extend(list_random)
         return list_recommendations
@@ -54,6 +61,10 @@ async def update_user_profile(user_id, wallpaper_id, weight):
     user_profile = await get_user_profile(user_id)
     wallpaper = await get_wallpaper(wallpaper_id)
     await update_user_preference(user_id, user_profile["preference_vector"], wallpaper["embedding"], weight)
+
+async def insert_recommend_history(user_id, wallpaper_id):
+    validate_uuid4(user_id)
+    await insert_history(user_id, wallpaper_id)
     
 
     
