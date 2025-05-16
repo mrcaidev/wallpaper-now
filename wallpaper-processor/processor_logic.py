@@ -22,7 +22,7 @@ fusion_model.eval()
 # === 处理逻辑 ===
 def process_one(wallpaper):
     try:
-        image_path = wallpaper['rawUrl']
+        image_path = wallpaper['smallUrl']
         text_path = wallpaper['description']
         image_id = wallpaper['id']
 

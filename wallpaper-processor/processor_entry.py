@@ -24,11 +24,12 @@ def consume_partition():
 
     for msg in consumer:
         logger.info(f"{CONSUMER_NAME} 收到 📥 来自 partition {msg.partition} 的消息：{msg.value}")
-        
+
         processed = process_wallpaper(msg.value)
 
         # 模拟处理后发回另一个 Kafka topic
         producer.send(WALLPAPER_VECTORIZED_TOPIC, processed)
+        producer.flush()
         logger.info(f"{CONSUMER_NAME} 📤 Partition {msg.partition} 处理完成并返回")
 
 
