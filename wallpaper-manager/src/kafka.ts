@@ -32,13 +32,10 @@ await producer.connect();
 console.log("Connected producer to Kafka");
 
 export async function sendWallpaperScrapedEvent(wallpapers: Wallpaper[]) {
-  const BATCH_SIZE = 100;
-
-  for (let i = 0; i <= wallpapers.length - 1; i += BATCH_SIZE) {
-    const batch = wallpapers.slice(i, i + BATCH_SIZE);
+  for (const wallpaper of wallpapers) {
     const [record] = await producer.send({
       topic: "WallpaperScraped",
-      messages: [{ value: JSON.stringify({ wallpapers: batch }) }],
+      messages: [{ value: JSON.stringify(wallpaper) }],
     });
     console.log("Sent event:", JSON.stringify(record));
   }

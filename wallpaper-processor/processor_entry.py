@@ -24,8 +24,11 @@ def consume_partition():
 
     for msg in consumer:
         logger.info(f"{CONSUMER_NAME} 收到 📥 来自 partition {msg.partition} 的消息：{msg.value}")
-        
+
         processed = process_wallpaper(msg.value)
+        if processed is None:
+            logger.info(f"❌ {CONSUMER_NAME} 处理失败，跳过消息")
+            continue
 
         # 模拟处理后发回另一个 Kafka topic
         producer.send(WALLPAPER_VECTORIZED_TOPIC, processed)

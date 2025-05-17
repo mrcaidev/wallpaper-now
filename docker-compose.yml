@@ -30,10 +30,10 @@ services:
       - POSTGRES_URL=postgresql://user-manager:3f9876c5d8d29c1c490cdaa119a7d5e3@user-manager-postgres:5432/user-manager
       - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
     depends_on:
-      - user-manager-postgres
-      - kafka-1
-      - kafka-2
-      - kafka-3
+      user-manager-postgres:
+        condition: service_started
+      init-kafka:
+        condition: service_completed_successfully
     restart: always
 
   user-manager-postgres:
@@ -54,10 +54,10 @@ services:
       - POSTGRES_URL=postgresql://wallpaper-manager:b9135ff23d8df60de4a4fa7e7d2f8a92@wallpaper-manager-postgres:5432/wallpaper-manager
       - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
     depends_on:
-      - wallpaper-manager-postgres
-      - kafka-1
-      - kafka-2
-      - kafka-3
+      wallpaper-manager-postgres:
+        condition: service_started
+      init-kafka:
+        condition: service_completed_successfully
     restart: always
 
   wallpaper-manager-postgres:
@@ -82,9 +82,8 @@ services:
     volumes:
       - ./wallpaper-processor/models:/app/models
     depends_on:
-      - kafka-1
-      - kafka-2
-      - kafka-3
+      init-kafka:
+        condition: service_completed_successfully
     restart: always
 
   interaction-collector:
@@ -93,10 +92,10 @@ services:
       - POSTGRES_URL=postgresql://interaction-collector:54f48a762ab0867b396cde2d14138d20@interaction-collector-postgres:5432/interaction-collector
       - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
     depends_on:
-      - interaction-collector-postgres
-      - kafka-1
-      - kafka-2
-      - kafka-3
+      interaction-collector-postgres:
+        condition: service_started
+      init-kafka:
+        condition: service_completed_successfully
     restart: always
 
   interaction-collector-postgres:
@@ -125,10 +124,10 @@ services:
       - KAFKA_TOPIC=InteractionCollected
       - KAFKA_GROUP_ID=trending-analyzer-group
     depends_on:
-      - trending-tracker-redis
-      - kafka-1
-      - kafka-2
-      - kafka-3
+      trending-tracker-redis:
+        condition: service_started
+      init-kafka:
+        condition: service_completed_successfully
     restart: always
 
   trending-tracker-redis:
@@ -148,10 +147,10 @@ services:
       - POSTGRES_HOST=recommender-postgres
       - POSTGRES_PORT=5432
     depends_on:
-      - recommender-postgres
-      - kafka-1
-      - kafka-2
-      - kafka-3
+      recommender-postgres:
+        condition: service_started
+      init-kafka:
+        condition: service_completed_successfully
     restart: always
 
   recommender-postgres:
@@ -178,55 +177,90 @@ services:
       - recommender
       - trending-tracker
 
-  kafka-1:
-    image: apache/kafka-native
-    environment:
-      - KAFKA_NODE_ID=1
-      - KAFKA_PROCESS_ROLES=broker,controller
-      - KAFKA_LISTENERS=CONTROLLER://:9091,DOCKER://:9092
-      - KAFKA_ADVERTISED_LISTENERS=DOCKER://kafka-1:9092
-      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT
-      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
-      - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
-      - KAFKA_NUM_PARTITIONS=3
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+  init-kafka:
+    image: bitnami/kafka
+    init: true
+    command: sh -c /init-kafka.sh
     volumes:
-      - kafka-1-data:/var/lib/kafka/data
+      - ./init/kafka.sh:/init-kafka.sh
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+
+  kafka-1:
+    image: bitnami/kafka
+    environment:
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      - KAFKA_KRAFT_CLUSTER_ID=0
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-1:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_NUM_PARTITIONS=3
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+    volumes:
+      - kafka-1-data:/bitnami/data
+    healthcheck:
+      test: kafka-topics.sh --bootstrap-server kafka-1:9092 --list
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      start_interval: 5s
     restart: always
 
   kafka-2:
-    image: apache/kafka-native
+    image: bitnami/kafka
     environment:
-      - KAFKA_NODE_ID=2
-      - KAFKA_PROCESS_ROLES=broker,controller
-      - KAFKA_LISTENERS=CONTROLLER://:9091,DOCKER://:9092
-      - KAFKA_ADVERTISED_LISTENERS=DOCKER://kafka-2:9092
-      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT
-      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
-      - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
-      - KAFKA_NUM_PARTITIONS=3
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_CFG_NODE_ID=2
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      - KAFKA_KRAFT_CLUSTER_ID=0
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-2:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_NUM_PARTITIONS=3
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=2
     volumes:
-      - kafka-2-data:/var/lib/kafka/data
+      - kafka-2-data:/bitnami/data
+    healthcheck:
+      test: kafka-topics.sh --bootstrap-server kafka-2:9092 --list
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      start_interval: 5s
     restart: always
 
   kafka-3:
-    image: apache/kafka-native
+    image: bitnami/kafka
     environment:
-      - KAFKA_NODE_ID=3
-      - KAFKA_PROCESS_ROLES=broker,controller
-      - KAFKA_LISTENERS=CONTROLLER://:9091,DOCKER://:9092
-      - KAFKA_ADVERTISED_LISTENERS=DOCKER://kafka-3:9092
-      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT
-      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
-      - KAFKA_INTER_BROKER_LISTENER_NAME=DOCKER
-      - KAFKA_NUM_PARTITIONS=3
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_CFG_NODE_ID=3
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      - KAFKA_KRAFT_CLUSTER_ID=0
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-3:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_NUM_PARTITIONS=3
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=2
     volumes:
-      - kafka-3-data:/var/lib/kafka/data
+      - kafka-3-data:/bitnami/data
+    healthcheck:
+      test: kafka-topics.sh --bootstrap-server kafka-3:9092 --list
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      start_interval: 5s
     restart: always
 
   kafka-ui:
@@ -237,9 +271,12 @@ services:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
     depends_on:
-      - kafka-1
-      - kafka-2
-      - kafka-3
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
     restart: always
 
 volumes:

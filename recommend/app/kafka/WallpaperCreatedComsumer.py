@@ -18,10 +18,9 @@ KAFKA_TOPIC = "WallpaperVectorized"
 consumer_task = None
 
 # 处理用户创建消息的函数
-async def process_wallpaper_scraped_message(wallpaper_data):
-    for wallpaper in wallpaper_data:
-        logger.info(f"wallpaper ID: {wallpaper['id']}")
-        await create_wallpaper_embedding(wallpaper['id'], wallpaper['embedding'])
+async def process_wallpaper_scraped_message(wallpaper):
+    logger.info(f"wallpaper ID: {wallpaper['id']}")
+    await create_wallpaper_embedding(wallpaper['id'], wallpaper['embedding'])
 
 # Kafka消费者协程
 async def consume():
@@ -34,7 +33,7 @@ async def consume():
     try:
         # 启动消费者
         await retryUtil.retry_with_backoff(consumer.start)
-        
+
         # 持续消费消息
         async for msg in consumer:
             logger.info(f"event accepted: {msg.topic}, {msg.partition}, {msg.offset}")
