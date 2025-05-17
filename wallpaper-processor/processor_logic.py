@@ -42,8 +42,5 @@ def process_one(wallpaper):
         return None
 
 def process_wallpaper(wallpaper_message):
-    wallpapers = wallpaper_message['wallpapers']
-
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        results = list(executor.map(process_one, wallpapers))
-    return [r for r in results if r is not None]
+    wallpaper = wallpaper_message
+    return process_one(wallpaper)
